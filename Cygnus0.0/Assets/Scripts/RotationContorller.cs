@@ -12,23 +12,25 @@ public class RotationContorller : MonoBehaviour
     Transform tempParent;//临时父对象
     Transform oldparent;//原始父对象
 
-    /// <summary>松手后相对初始姿态的累计旋转（欧拉角，单位：度），以 oldparent 为坐标系；逆时针10度再顺时针10度记为(0,0,0)</summary>
+    /// <summary>当前面向角度（世界坐标欧拉角，度），由 WorldEulerAngleProvider 等外部脚本写入</summary>
     public Vector3 Currentangle;
 
-    /// <summary>初始姿态（相对父物体），在 Awake 中记录，坐标系原点为 oldparent</summary>
-    Quaternion initialLocalRotation;
+    /// <summary>松手时触发（仅此时可据此判断是否对准并绘制星体连线）</summary>
+    public System.Action onRotationEnd;
+
+    /// <summary>是否正在拖拽，供 StarsManager 判断“松手且对准”时画线</summary>
+    public bool IsDragging => isDown;
 
     private void Awake()
     {
         tempParent = new GameObject("TempParent").transform;
-        initialLocalRotation = transform.localRotation;
     }
-    // Start is called before the first frame update
+
     void Start()
     {
         oldparent = transform.parent;
-        tempParent.position = oldparent == null ? transform.position:oldparent.position;
-        tempParent.rotation=Quaternion.identity;
+        tempParent.position = oldparent == null ? transform.position : oldparent.position;
+        tempParent.rotation = Quaternion.identity;
     }
 
     // Update is called once per frame
@@ -46,10 +48,10 @@ public class RotationContorller : MonoBehaviour
             {
                 isDown = false;
                 transform.parent = oldparent;
-                // 相对初始姿态的累计旋转（在 oldparent 坐标系下）
-                Quaternion cumulativeDelta = Quaternion.Inverse(initialLocalRotation) * transform.localRotation;
-                Currentangle = cumulativeDelta.eulerAngles;
                 tempParent.rotation = Quaternion.identity;
+                // 松手瞬间用当前世界欧拉角更新，确保 OnRotationEnd 里读到正确值（不依赖 Update 顺序）
+                Currentangle = transform.eulerAngles;
+                onRotationEnd?.Invoke();
             }
 
             if (isDown)
@@ -61,5 +63,12 @@ public class RotationContorller : MonoBehaviour
                 tempParent.rotation = tempParent.rotation * qx * qy;
             }
         }
+    }
+
+    void OnGUI()
+    {
+        Rect rect = new Rect(10, 10, 500, 36);
+        GUIStyle style = new GUIStyle(GUI.skin.label) { fontSize = 24 };
+        GUI.Label(rect, $"Currentangle: ({Currentangle.x:F1}, {Currentangle.y:F1}, {Currentangle.z:F1})", style);
     }
 }

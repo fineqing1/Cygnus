@@ -118,7 +118,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9958f8c70d1d5434d9d548205c19b96d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  neighborstars: []
+  neighborstars:
+  - {fileID: 0}
+  - {fileID: 0}
   sphereCenter: {fileID: 0}
   sphereRadius: 5
   segmentCount: 50
