@@ -41,8 +41,9 @@ Material:
     - _GrayNoise: 0.1
     - _MaxTailAge: 1.94
     - _MaxTailLength: 0.5
+    - _MeteorBaseWidth: 0.0025
     - _MeteorBrightness: 71
-    - _MeteorCount: 301.65
+    - _MeteorCount: 3.11
     - _MeteorFadeEnd: 2
     - _MeteorFadeRange: 4.4
     - _MeteorFadeStart: 0.279
@@ -51,14 +52,16 @@ Material:
     - _MeteorHeadBright: 2.6
     - _MeteorHeadSize: 2
     - _MeteorHeadWidth: 32.15
+    - _MeteorIntensity: 0.31
     - _MeteorInterval: 2.3
-    - _MeteorLength: 1.27
+    - _MeteorLength: 0.775
     - _MeteorLifeMax: 6.79
     - _MeteorLifeMin: 0.35
     - _MeteorMaxTailLength: 0.25
     - _MeteorMaxWidth: 1365.3
     - _MeteorMinWidth: 0.06
-    - _MeteorSpeed: 0.8
+    - _MeteorSpawnInterval: 3.63
+    - _MeteorSpeed: 0.69
     - _MeteorStarSize: 0.005
     - _MeteorTailFade: 14.11
     - _MeteorTailLength: 0.02
