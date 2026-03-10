@@ -121,7 +121,8 @@ MonoBehaviour:
   neighborstars:
   - {fileID: 0}
   - {fileID: 0}
-  sphereCenter: {fileID: 0}
-  sphereRadius: 5
+  sphereCenter: {x: 0, y: 0, z: 0}
   segmentCount: 50
-  lineWidth: 0.2
+  lineWidth: 0.05
+  debugLog: 0
+  debugGizmos: 0

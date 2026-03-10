@@ -155,10 +155,10 @@ MonoBehaviour:
   - {fileID: 1568144369}
   - {fileID: 930608146}
   - {fileID: 1693397240}
-  targetangle: {x: 0, y: 0, z: 100}
+  targetangle: {x: 0, y: 40, z: 0}
   rotationController: {fileID: 565164461}
   angleSource: {fileID: 0}
-  maxBrightness: 12
+  maxBrightness: 10
   angleTolerance: 10
   maxAngleDiff: 180
   emissionColor: {r: 1, g: 1, b: 1, a: 1}
@@ -652,7 +652,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1237924680}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -755,6 +755,10 @@ PrefabInstance:
     - target: {fileID: 2679827973866460442, guid: e548120534c481648b974f011d4c0b6d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3149758468944328879, guid: e548120534c481648b974f011d4c0b6d, type: 3}
+      propertyPath: lineWidth
+      value: 0.05
       objectReference: {fileID: 0}
     - target: {fileID: 3149758468944328879, guid: e548120534c481648b974f011d4c0b6d, type: 3}
       propertyPath: neighborstars.Array.size
