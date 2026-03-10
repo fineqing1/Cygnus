@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Starsky
+  m_Shader: {fileID: 4800000, guid: 31ecf106907e53547b85ef698bfc970e, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _BrightStarChance: 0.01
+    - _BrightStarSize: 0.1
+    - _FadeInDur: 35.7
+    - _FadeInDuration: 0.5
+    - _FadeInTime: 1
+    - _FadeOutDur: 38.61
+    - _FadeOutDuration: 0.5
+    - _FadeOutTime: 1
+    - _GalaxyIntensity: 0.586
+    - _GalaxyNoiseScale: 15.87
+    - _GalaxyRandomness: 2.5
+    - _GalaxySmoothness: 9.4
+    - _GalaxyStrength: 0.11
+    - _GrayNoise: 0.1
+    - _MaxTailAge: 1.94
+    - _MaxTailLength: 0.5
+    - _MeteorBrightness: 71
+    - _MeteorCount: 301.65
+    - _MeteorFadeEnd: 2
+    - _MeteorFadeRange: 4.4
+    - _MeteorFadeStart: 0.279
+    - _MeteorFixedLength: 0.2
+    - _MeteorGlow: 10.05
+    - _MeteorHeadBright: 2.6
+    - _MeteorHeadSize: 2
+    - _MeteorHeadWidth: 32.15
+    - _MeteorInterval: 2.3
+    - _MeteorLength: 1.27
+    - _MeteorLifeMax: 6.79
+    - _MeteorLifeMin: 0.35
+    - _MeteorMaxTailLength: 0.25
+    - _MeteorMaxWidth: 1365.3
+    - _MeteorMinWidth: 0.06
+    - _MeteorSpeed: 0.8
+    - _MeteorStarSize: 0.005
+    - _MeteorTailFade: 14.11
+    - _MeteorTailLength: 0.02
+    - _MeteorTailMaxLen: 0.35
+    - _MeteorTailWidth: 12.85
+    - _MeteorTotalLength: 0.06
+    - _MeteorWidth: 0.1
+    - _Nebula: 0.456
+    - _StarBrightness: 1.023
+    - _StarDens: 0.0066
+    - _StarDensity: 0.0493
+    - _StarMaxBright: 4.1
+    - _StarMaxSize: 0.39
+    - _StarMinBright: -4.46
+    - _StarMinSize: 0
+    - _StarSize: 0.00234
+    - _StarTwinkleMaxSpeed: 2.94
+    - _StarTwinkleMinSpeed: -1.2
+    - _StarTwinkleSpeed: 4.27
+    - _StarYellowRatio: 0.389
+    - _TwinkleSpeed: 0.09
+    m_Colors:
+    - _BaseColor: {r: 0.049999982, g: 0.049999982, b: 0.09999997, a: 1}
+    - _BgBlue: {r: 0.09999997, g: 0.14999998, b: 0.29999998, a: 1}
+    - _BgDark: {r: 0.02, g: 0.02, b: 0.049999982, a: 1}
+    - _BlueTint: {r: 0.09999997, g: 0.19999996, b: 0.39999998, a: 1}
+    - _GalaxyColor: {r: 0.38431376, g: 0.47058827, b: 0.60784316, a: 1}
+    - _GalaxyColor1: {r: 0.010640343, g: 0.011412596, b: 0.012578547, a: 1}
+    - _GalaxyColor2: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 1}
+    - _MeteorColor: {r: 1, g: 1, b: 1, a: 1}
+    - _MeteorHeadColor: {r: 1, g: 0.9, b: 0.39999998, a: 1}
+    - _MeteorTailColor: {r: 0.29999998, g: 0.6, b: 1, a: 1}
+    - _StarWhiteColor: {r: 1, g: 1, b: 1, a: 1}
+    - _StarYellowColor: {r: 1, g: 0.9, b: 0.6, a: 1}
+  m_BuildTextureStacks: []
