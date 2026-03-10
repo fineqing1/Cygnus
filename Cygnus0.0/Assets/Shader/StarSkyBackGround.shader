@@ -17,14 +17,18 @@ Shader "Unlit/PureStarSky"
         _StarTwinkleMinSpeed("最小闪烁速度", Float) = 0.2
         _StarTwinkleMaxSpeed("最大闪烁速度", Float) = 3.0
         // --- 流星参数 ---
-        _MeteorCount("流星数量(整数近似)", Range(0, 8)) = 3
+        _MeteorCount("流星轨道数量", Range(0, 16)) = 8
         _MeteorSpeed("流星速度", Range(0.1, 5.0)) = 1.5
         _MeteorLength("流星长度", Range(0.2, 2.0)) = 0.8
         _MeteorBaseWidth("流星基础粗细", Range(0.001, 0.05)) = 0.01
-        _MeteorSpawnInterval("每条流星周期(秒)", Range(1.0, 10.0)) = 4.0
+        _MeteorSpawnInterval("每条流星周期(秒)", Range(1.0, 14.0)) = 5.0
+        _MeteorLaneSpacing("轨道间距", Range(0.5, 2.5)) = 1.35
         _MeteorHeadColor("流星头颜色(黄)", Color) = (1.2, 1.0, 0.4, 1)
         _MeteorTailColor("流星尾颜色(蓝)", Color) = (0.3, 0.6, 1.5, 1)
+        _MeteorTailPurple("流星尾末端(紫)", Color) = (0.4, 0.25, 0.7, 1)
         _MeteorIntensity("流星整体强度", Range(0.0, 5.0)) = 1.5
+        _MeteorDepthMin("最近流星缩放", Range(0.3, 1.0)) = 0.5
+        _MeteorDepthMax("最远流星缩放", Range(0.8, 2.0)) = 1.4
     }
     SubShader
     {
@@ -68,9 +72,13 @@ Shader "Unlit/PureStarSky"
             float  _MeteorLength;
             float  _MeteorBaseWidth;
             float  _MeteorSpawnInterval;
+            float  _MeteorLaneSpacing;
             float4 _MeteorHeadColor;
             float4 _MeteorTailColor;
+            float4 _MeteorTailPurple;
             float  _MeteorIntensity;
+            float  _MeteorDepthMin;
+            float  _MeteorDepthMax;
             v2f vert (appdata v)
             {
                 v2f o;
@@ -143,18 +151,20 @@ Shader "Unlit/PureStarSky"
                     else if (colorRand < 0.6) starColor = float3(0.9, 0.95, 1.0);
                     col += starColor * star * twinkle * starBright;
                 }
-                // ===================== 3. 流星系统 =====================
+                // ===================== 3. 流星系统（远近大小 + 颗粒尾） =====================
                 float3 meteorAccum = 0.0;
-                // 流星飞行方向：从右下角飞往左上角（与之前反向）
                 float2 dirBase = normalize(float2(-1.0, 1.0));
                 int count = (int)_MeteorCount;
                 for (int idx = 0; idx < count; idx++)
                 {
                     float2 seed = float2(idx * 13.37 + 1.23, idx * 7.91 + 4.56);
-                    // 每条流星轨道分散：起点在右下区域随机 + 小幅角度偏移，避免重合
-                    float startX = 1.15 + rand(seed) * 0.35;
-                    float startY = -0.25 - rand(seed + 11.11) * 0.4;
-                    float angleOffset = (rand(seed + 22.22) - 0.5) * 0.25;
+                    float depthScale = lerp(_MeteorDepthMin, _MeteorDepthMax, rand(seed + 44.44));
+                    float brightnessScale = lerp(0.6, 1.35, depthScale);
+                    // 全屏覆盖：起点分布在右下整条边（右缘+下缘），轨道等间距 + 随机微调
+                    float lane = (count > 1) ? ((float)idx / (float)(count - 1)) : 0.5;
+                    float startY = -0.5 + lane * 1.6 * _MeteorLaneSpacing + (rand(seed + 11.11) - 0.5) * 0.25;
+                    float startX = 1.02 + rand(seed) * 0.58 + (rand(seed + 55.55) - 0.5) * 0.2;
+                    float angleOffset = (rand(seed + 22.22) - 0.5) * 0.22;
                     float c = cos(angleOffset);
                     float s = sin(angleOffset);
                     float2 dir = float2(dirBase.x * c - dirBase.y * s, dirBase.x * s + dirBase.y * c);
@@ -165,21 +175,45 @@ Shader "Unlit/PureStarSky"
                     if (life <= 0.0001)
                         continue;
                     float t = localTime;
-                    float totalTravel = _MeteorLength + 1.6;
+                    float totalTravel = (_MeteorLength + 2.0) * depthScale;
+                    float trailLen = _MeteorLength * depthScale;
                     float2 headPos = headStart + dir * (t * totalTravel);
-                    float2 tailPos = headPos - dir * _MeteorLength;
+                    float2 tailPos = headPos - dir * trailLen;
                     float distToSeg, segT;
                     DistanceToSegment(uv, tailPos, headPos, distToSeg, segT);
                     if (segT <= 0.0 || segT >= 1.0)
                         continue;
                     float widthFactor = lerp(1.8, 0.3, segT);
-                    float width = _MeteorBaseWidth * widthFactor;
-                    float radial = exp(-pow(distToSeg / width, 2.0));
-                    float tailFade = smoothstep(0.0, 0.15, segT) * smoothstep(1.0, 0.7, segT);
+                    float width = _MeteorBaseWidth * widthFactor * depthScale;
+                    float radial = exp(-pow(distToSeg / width, 1.8));
+                    float tailFade = smoothstep(0.0, 0.12, segT) * smoothstep(1.0, 0.65, segT);
+                    // 尾迹颗粒/闪烁：沿轨迹与横向噪声
+                    float2 trailUV = float2(segT * 90.0 + seed.x * 10.0, distToSeg / max(width, 1e-5) * 4.0 + seed.y);
+                    float spark = fbm(trailUV) * 0.5 + 0.5;
+                    spark = pow(spark, 1.5);
+                    float sparkEdge = 1.0 + (noise(trailUV * 30.0) - 0.5) * 0.4;
+                    radial *= sparkEdge;
+                    float strand = 1.0;
+                    float2 perp = float2(-dir.y, dir.x);
+                    for (int s = 0; s < 2; s++)
+                    {
+                        float off = (float(s) - 0.5) * width * 0.4;
+                        float d2 = distToSeg - off;
+                        float r2 = exp(-pow(abs(d2) / width, 2.0));
+                        strand += r2 * (0.3 + 0.2 * noise(trailUV + float2(s * 17.0, 0)));
+                    }
+                    strand = saturate(strand * 0.7);
+                    // 颜色：头黄 → 中蓝 → 尾紫，带沿程微变
                     float3 headCol = _MeteorHeadColor.rgb;
                     float3 tailCol = _MeteorTailColor.rgb;
-                    float3 meteorColor = lerp(tailCol, headCol, pow(segT, 2.0));
-                    meteorAccum += meteorColor * (radial * tailFade * life);
+                    float3 purpleCol = _MeteorTailPurple.rgb;
+                    float3 midCol = lerp(tailCol, purpleCol, 0.4);
+                    float seg2 = segT * segT;
+                    float3 baseGrad = lerp(lerp(purpleCol, midCol, smoothstep(0.0, 0.5, segT)), headCol, seg2);
+                    float hueNoise = (noise(float2(segT * 50.0, seed.x)) - 0.5) * 0.08;
+                    float3 meteorColor = baseGrad + hueNoise;
+                    float tailMask = radial * tailFade * life * (0.75 + 0.35 * spark) * strand;
+                    meteorAccum += meteorColor * tailMask * brightnessScale;
                 }
                 col += meteorAccum * _MeteorIntensity;
                 return fixed4(col, 1.0);

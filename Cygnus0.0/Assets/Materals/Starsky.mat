@@ -41,31 +41,37 @@ Material:
     - _GrayNoise: 0.1
     - _MaxTailAge: 1.94
     - _MaxTailLength: 0.5
-    - _MeteorBaseWidth: 0.0025
+    - _MeteorBaseWidth: 0.0039
     - _MeteorBrightness: 71
-    - _MeteorCount: 3.11
+    - _MeteorCount: 16
+    - _MeteorDepthMax: 1.088
+    - _MeteorDepthMin: 0.654
     - _MeteorFadeEnd: 2
     - _MeteorFadeRange: 4.4
     - _MeteorFadeStart: 0.279
     - _MeteorFixedLength: 0.2
+    - _MeteorFlareScale: 0.6
     - _MeteorGlow: 10.05
     - _MeteorHeadBright: 2.6
     - _MeteorHeadSize: 2
     - _MeteorHeadWidth: 32.15
-    - _MeteorIntensity: 0.31
+    - _MeteorIntensity: 0.94
     - _MeteorInterval: 2.3
-    - _MeteorLength: 0.775
+    - _MeteorLaneSpacing: 2.178
+    - _MeteorLength: 0.436
     - _MeteorLifeMax: 6.79
     - _MeteorLifeMin: 0.35
     - _MeteorMaxTailLength: 0.25
     - _MeteorMaxWidth: 1365.3
     - _MeteorMinWidth: 0.06
-    - _MeteorSpawnInterval: 3.63
-    - _MeteorSpeed: 0.69
+    - _MeteorSpawnInterval: 6.83
+    - _MeteorSpeed: 0.94
     - _MeteorStarSize: 0.005
+    - _MeteorStarburst: 1.2
     - _MeteorTailFade: 14.11
     - _MeteorTailLength: 0.02
     - _MeteorTailMaxLen: 0.35
+    - _MeteorTailPurple: 0.35
     - _MeteorTailWidth: 12.85
     - _MeteorTotalLength: 0.06
     - _MeteorWidth: 0.1
@@ -94,6 +100,7 @@ Material:
     - _MeteorColor: {r: 1, g: 1, b: 1, a: 1}
     - _MeteorHeadColor: {r: 1, g: 0.9, b: 0.39999998, a: 1}
     - _MeteorTailColor: {r: 0.29999998, g: 0.6, b: 1, a: 1}
+    - _MeteorTailPurple: {r: 0.39999998, g: 0.24999997, b: 0.7, a: 1}
     - _StarWhiteColor: {r: 1, g: 1, b: 1, a: 1}
     - _StarYellowColor: {r: 1, g: 0.9, b: 0.6, a: 1}
   m_BuildTextureStacks: []
