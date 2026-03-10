@@ -157,7 +157,9 @@ MonoBehaviour:
   - {fileID: 1693397240}
   targetangle: {x: 0, y: 0, z: 100}
   rotationController: {fileID: 565164461}
-  maxBrightness: 6
+  angleSource: {fileID: 0}
+  maxBrightness: 12
+  angleTolerance: 10
   maxAngleDiff: 180
   emissionColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!4 &127535936
@@ -223,6 +225,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3149758468944328879, guid: e548120534c481648b974f011d4c0b6d, type: 3}
+      propertyPath: neighborstars.Array.data[0]
+      value: 
+      objectReference: {fileID: 1568144369}
+    - target: {fileID: 3149758468944328879, guid: e548120534c481648b974f011d4c0b6d, type: 3}
+      propertyPath: neighborstars.Array.data[1]
+      value: 
+      objectReference: {fileID: 1693397240}
     - target: {fileID: 6304396978022440853, guid: e548120534c481648b974f011d4c0b6d, type: 3}
       propertyPath: m_Name
       value: Sphere (1)
@@ -558,6 +568,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3149758468944328879, guid: e548120534c481648b974f011d4c0b6d, type: 3}
+      propertyPath: neighborstars.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3149758468944328879, guid: e548120534c481648b974f011d4c0b6d, type: 3}
+      propertyPath: neighborstars.Array.data[0]
+      value: 
+      objectReference: {fileID: 930608146}
+    - target: {fileID: 3149758468944328879, guid: e548120534c481648b974f011d4c0b6d, type: 3}
+      propertyPath: neighborstars.Array.data[1]
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 6304396978022440853, guid: e548120534c481648b974f011d4c0b6d, type: 3}
       propertyPath: m_Name
       value: Sphere (2)
@@ -579,6 +601,7 @@ GameObject:
   - component: {fileID: 1237924684}
   - component: {fileID: 1237924683}
   - component: {fileID: 1237924682}
+  - component: {fileID: 1237924685}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -629,7 +652,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1237924680}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -672,6 +695,19 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1237924680}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1237924685
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1237924680}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8adc61282655b7428b764da14053f5d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotationController: {fileID: 565164461}
 --- !u!1001 &1266256802
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -720,6 +756,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3149758468944328879, guid: e548120534c481648b974f011d4c0b6d, type: 3}
+      propertyPath: neighborstars.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3149758468944328879, guid: e548120534c481648b974f011d4c0b6d, type: 3}
+      propertyPath: neighborstars.Array.data[0]
+      value: 
+      objectReference: {fileID: 930608146}
     - target: {fileID: 6304396978022440853, guid: e548120534c481648b974f011d4c0b6d, type: 3}
       propertyPath: m_Name
       value: Sphere
