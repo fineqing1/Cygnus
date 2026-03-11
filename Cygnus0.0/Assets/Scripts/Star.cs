@@ -112,9 +112,11 @@ public class Star : MonoBehaviour
             }
             else
             {
+                // 从第 1 段开始：起点 + 弧线上 1/segmentCount 处
                 lr.positionCount = 2;
                 lr.SetPosition(0, center + dirA * radius);
-                lr.SetPosition(1, center + dirB * radius);
+                Vector3 dir1 = Vector3.Slerp(dirA, dirB, 1f / segmentCount);
+                lr.SetPosition(1, center + dir1 * radius);
                 arcDataList.Add(new ArcLineData { lr = lr, center = center, dirA = dirA, dirB = dirB, radius = radius });
             }
         }
@@ -139,7 +141,7 @@ public class Star : MonoBehaviour
     {
         float elapsed = 0f;
         int totalPoints = segmentCount + 1;
-
+        // 从 1 段开始，逐段增加；每段弧长固定（t 步长 1/segmentCount），终点沿弧线靠近尾星
         while (elapsed < lineAppearDuration)
         {
             elapsed += Time.deltaTime;
@@ -151,10 +153,9 @@ public class Star : MonoBehaviour
             {
                 if (data.lr == null) continue;
                 data.lr.positionCount = showCount;
-                float denom = (showCount > 1) ? (showCount - 1) : 1f;
                 for (int i = 0; i < showCount; i++)
                 {
-                    float t = i / denom;
+                    float t = i / (float)segmentCount;
                     Vector3 dir = Vector3.Slerp(data.dirA, data.dirB, t);
                     data.lr.SetPosition(i, data.center + dir * data.radius);
                 }
@@ -168,7 +169,7 @@ public class Star : MonoBehaviour
             data.lr.positionCount = totalPoints;
             for (int i = 0; i < totalPoints; i++)
             {
-                float t = i / (float)(totalPoints - 1);
+                float t = i / (float)segmentCount;
                 Vector3 dir = Vector3.Slerp(data.dirA, data.dirB, t);
                 data.lr.SetPosition(i, data.center + dir * data.radius);
             }

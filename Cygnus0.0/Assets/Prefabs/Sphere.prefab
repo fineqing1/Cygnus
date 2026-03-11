@@ -127,6 +127,6 @@ MonoBehaviour:
   lineMaterial: {fileID: 2100000, guid: f8cac0813e1ca8f42ae0bd34c26925c7, type: 2}
   lineStartColor: {r: 1, g: 1, b: 1, a: 1}
   lineEndColor: {r: 1, g: 1, b: 1, a: 1}
-  lineAppearDuration: 0.5
+  lineAppearDuration: 5
   debugLog: 0
   debugGizmos: 0
