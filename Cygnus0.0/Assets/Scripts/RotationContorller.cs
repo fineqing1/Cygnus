@@ -21,6 +21,9 @@ public class RotationContorller : MonoBehaviour
     /// <summary>是否正在拖拽，供 StarsManager 判断“松手且对准”时画线</summary>
     public bool IsDragging => isDown;
 
+    /// <summary>为 true 时忽略拖拽输入（如线条出现动画期间）</summary>
+    public bool InputBlocked { get; set; }
+
     private void Awake()
     {
         tempParent = new GameObject("TempParent").transform;
@@ -36,6 +39,7 @@ public class RotationContorller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (InputBlocked) return;
         if (isdragable)
         {
             if (Input.GetMouseButtonDown(0))

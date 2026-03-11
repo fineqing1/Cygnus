@@ -14,13 +14,18 @@ public class StarsManager : MonoBehaviour
     [Tooltip("不填则用 rotationController 所在物体；填了则直接读其世界欧拉角，保证拖拽时亮度实时变化")]
     [SerializeField] Transform angleSource;
     [Tooltip("角度差超过此值亮度为 0；完全对准时亮度为该值")]
-    [SerializeField] float maxBrightness = 6f;
+    [SerializeField] float maxBrightness = 10f;
     [Tooltip("角度差在此范围内视为对准，给满亮度")]
     [SerializeField] float angleTolerance = 10f;
     [Tooltip("角度差超过此值亮度为 0")]
     [SerializeField] float maxAngleDiff = 180f;
-    [Tooltip("HDR 发射色（亮度由角度差计算）")]
+    [Tooltip("发射色作为色相/色调，实际 HDR 强度由角度差计算，与左上角显示的亮度一致")]
     [SerializeField] Color emissionColor = Color.white;
+    [Header("首尾星缩放")]
+    [Tooltip("角度差最大时首尾星的缩放")]
+    [SerializeField] float firstLastStarScaleMin = 0.1f;
+    [Tooltip("完全对准时首尾星的缩放")]
+    [SerializeField] float firstLastStarScaleMax = 0.3f;
 
     static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
     static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
@@ -39,12 +44,28 @@ public class StarsManager : MonoBehaviour
     {
         if (rotationController != null)
             rotationController.onRotationEnd += OnRotationEnd;
+        Star.LineAppearStarted += OnLineAppearStarted;
+        Star.LineAppearEnded += OnLineAppearEnded;
     }
 
     void OnDisable()
     {
         if (rotationController != null)
             rotationController.onRotationEnd -= OnRotationEnd;
+        Star.LineAppearStarted -= OnLineAppearStarted;
+        Star.LineAppearEnded -= OnLineAppearEnded;
+    }
+
+    void OnLineAppearStarted()
+    {
+        if (rotationController != null)
+            rotationController.isdragable = false;
+    }
+
+    void OnLineAppearEnded()
+    {
+        if (rotationController != null)
+            rotationController.isdragable = true;
     }
 
     void Update()
@@ -79,11 +100,12 @@ public class StarsManager : MonoBehaviour
 
     void OnGUI()
     {
+        GUIStyle style = new GUIStyle(GUI.skin.label) { fontSize = 22 };
+        float brightness = GetCurrentBrightness();
+        GUI.Label(new Rect(10, 80,400, 28), $"HDR 亮度: {brightness:F2}", style);
         if (rotationController == null) return;
         float diff = GetAngleDiff(GetCurrentAngle(), targetangle);
-        Rect rect = new Rect(10, 52, 400, 28);
-        GUIStyle style = new GUIStyle(GUI.skin.label) { fontSize = 22 };
-        GUI.Label(rect, $"diff: {diff:F1}", style);
+        GUI.Label(new Rect(10, 52, 400, 28), $"diff: {diff:F1}", style);
     }
 
     /// <summary>仅松手时调用：若在容差内则触发所有 Star 绘制连线</summary>
@@ -99,11 +121,21 @@ public class StarsManager : MonoBehaviour
         }
     }
 
+    /// <summary>将角度归一化到 [0, 360)，使 360° 与 0° 视为同一角度</summary>
+    static float NormalizeAngle360(float angle)
+    {
+        angle = angle % 360f;
+        if (angle < 0f) angle += 360f;
+        return angle;
+    }
+
     float GetAngleDiff(Vector3 current, Vector3 target)
     {
-        float dx = Mathf.Abs(Mathf.DeltaAngle(current.x, target.x));
-        float dy = Mathf.Abs(Mathf.DeltaAngle(current.y, target.y));
-        float dz = Mathf.Abs(Mathf.DeltaAngle(current.z, target.z));
+        float cx = NormalizeAngle360(current.x), cy = NormalizeAngle360(current.y), cz = NormalizeAngle360(current.z);
+        float tx = NormalizeAngle360(target.x), ty = NormalizeAngle360(target.y), tz = NormalizeAngle360(target.z);
+        float dx = Mathf.Abs(Mathf.DeltaAngle(cx, tx));
+        float dy = Mathf.Abs(Mathf.DeltaAngle(cy, ty));
+        float dz = Mathf.Abs(Mathf.DeltaAngle(cz, tz));
         return new Vector3(dx, dy, dz).magnitude;
     }
 
@@ -114,12 +146,10 @@ public class StarsManager : MonoBehaviour
         return Vector3.zero;
     }
 
-    /// <summary>根据当前角度与 targetangle 的差值，设置列表第一个和最后一个 Star 的 Material 的 HDR 亮度；差值越小越亮，越大越暗，最低为 0。</summary>
-    public void SetFirstLastStarBrightnessByAngleDiff()
+    /// <summary>根据当前角度与 targetangle 的差值计算应有的 HDR 亮度（与 SetFirstLastStarBrightnessByAngleDiff 一致）</summary>
+    public float GetCurrentBrightness()
     {
-        if (stars == null || stars.Count == 0) return;
-        if (rotationController == null && angleSource == null) return;
-
+        if (rotationController == null && angleSource == null) return 0f;
         float diff = GetAngleDiff(GetCurrentAngle(), targetangle);
         float t;
         if (diff <= angleTolerance)
@@ -127,12 +157,54 @@ public class StarsManager : MonoBehaviour
         else if (diff >= maxAngleDiff || maxAngleDiff <= angleTolerance)
             t = 0f;
         else
-            t = Mathf.Max(0f, 1f - (diff - angleTolerance) / (maxAngleDiff - angleTolerance));
-        float brightness = Mathf.Clamp(t * maxBrightness, 0f, 6f);
+        {
+            // 归一化到 [0,1]，再用 sqrt 使越接近目标亮度变化速率越大（近目标时对角度更敏感）
+            float x = (diff - angleTolerance) / (maxAngleDiff - angleTolerance);
+            t = Mathf.Max(0f, 1f - Mathf.Sqrt(Mathf.Clamp01(x)));
+        }
+        return Mathf.Clamp(t * maxBrightness, 0f, 10f);
+    }
 
+    /// <summary>根据当前角度与 targetangle 的差值计算首尾星缩放 [min, max]，使用与亮度相同的 sqrt 曲线（越接近目标变化越快）</summary>
+    public float GetFirstLastStarScale()
+    {
+        if (rotationController == null && angleSource == null)
+            return firstLastStarScaleMin;
+        float diff = GetAngleDiff(GetCurrentAngle(), targetangle);
+        float t;
+        if (diff <= angleTolerance)
+            t = 1f;
+        else if (diff >= maxAngleDiff || maxAngleDiff <= angleTolerance)
+            t = 0f;
+        else
+        {
+            float x = (diff - angleTolerance) / (maxAngleDiff - angleTolerance);
+            t = Mathf.Max(0f, 1f - Mathf.Sqrt(Mathf.Clamp01(x)));
+        }
+        return Mathf.Lerp(firstLastStarScaleMin, firstLastStarScaleMax, t);
+    }
+
+    /// <summary>根据当前角度与 targetangle 的差值，设置列表第一个和最后一个 Star 的亮度与缩放；差值越小越亮、越大。</summary>
+    public void SetFirstLastStarBrightnessByAngleDiff()
+    {
+        if (stars == null || stars.Count == 0) return;
+        if (rotationController == null && angleSource == null) return;
+
+        float brightness = GetCurrentBrightness();
+        float scale = GetFirstLastStarScale();
         SetStarEmissionBrightness(stars[0], brightness);
+        SetStarScale(stars[0], scale);
         if (stars.Count > 1)
+        {
             SetStarEmissionBrightness(stars[stars.Count - 1], brightness);
+            SetStarScale(stars[stars.Count - 1], scale);
+        }
+    }
+
+    void SetStarScale(Star star, float scale)
+    {
+        if (star == null) return;
+        star.transform.localScale = Vector3.one * Mathf.Clamp(scale, 0.1f, 0.3f);
     }
 
     void SetStarEmissionBrightness(Star star, float brightness)
@@ -142,7 +214,10 @@ public class StarsManager : MonoBehaviour
         if (r == null || r.sharedMaterial == null) return;
 
         Material mat = r.material;
-        Color color = emissionColor * brightness;
+        // 用 emissionColor 仅作色相（归一化），强度完全由 brightness 决定，使材质面板 HDR 亮度与界面显示一致
+        float maxChannel = Mathf.Max(emissionColor.r, emissionColor.g, emissionColor.b);
+        Color tint = maxChannel > 0.0001f ? emissionColor / maxChannel : Color.white;
+        Color color = tint * brightness;
 
         if (mat.HasProperty(EmissionColorId))
         {
