@@ -22,7 +22,11 @@ Material:
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: c10fc7489b1aae047bb6c6ab33690cce, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _BrightStarChance: 0.01
@@ -41,11 +45,11 @@ Material:
     - _GrayNoise: 0.1
     - _MaxTailAge: 1.94
     - _MaxTailLength: 0.5
-    - _MeteorBaseWidth: 0.0039
+    - _MeteorBaseWidth: 0.001
     - _MeteorBrightness: 71
-    - _MeteorCount: 16
-    - _MeteorDepthMax: 1.088
-    - _MeteorDepthMin: 0.654
+    - _MeteorCount: 32
+    - _MeteorDepthMax: 0.845
+    - _MeteorDepthMin: 0.475
     - _MeteorFadeEnd: 2
     - _MeteorFadeRange: 4.4
     - _MeteorFadeStart: 0.279
@@ -55,17 +59,20 @@ Material:
     - _MeteorHeadBright: 2.6
     - _MeteorHeadSize: 2
     - _MeteorHeadWidth: 32.15
-    - _MeteorIntensity: 0.94
+    - _MeteorIntensity: 0.63
     - _MeteorInterval: 2.3
-    - _MeteorLaneSpacing: 2.178
-    - _MeteorLength: 0.436
+    - _MeteorLaneSpacing: 0.913
+    - _MeteorLength: 0.03
     - _MeteorLifeMax: 6.79
     - _MeteorLifeMin: 0.35
     - _MeteorMaxTailLength: 0.25
     - _MeteorMaxWidth: 1365.3
     - _MeteorMinWidth: 0.06
-    - _MeteorSpawnInterval: 6.83
-    - _MeteorSpeed: 0.94
+    - _MeteorRunLength: 0.28
+    - _MeteorRunLengthMax: 0.321
+    - _MeteorRunLengthMin: 0.083
+    - _MeteorSpawnInterval: 2.62
+    - _MeteorSpeed: 0.37
     - _MeteorStarSize: 0.005
     - _MeteorStarburst: 1.2
     - _MeteorTailFade: 14.11
@@ -74,9 +81,15 @@ Material:
     - _MeteorTailPurple: 0.35
     - _MeteorTailWidth: 12.85
     - _MeteorTotalLength: 0.06
+    - _MeteorVisibleCount: 2
     - _MeteorWidth: 0.1
     - _Nebula: 0.456
-    - _StarBrightness: 1.023
+    - _Sharpness: 0.991
+    - _StarBreathPeriodMax: 4.6
+    - _StarBreathPeriodMin: 1.08
+    - _StarBrightness: 1.84
+    - _StarBrightnessMax: 1.49
+    - _StarBrightnessMin: 0.1
     - _StarDens: 0.0066
     - _StarDensity: 0.0493
     - _StarMaxBright: 4.1
@@ -84,9 +97,13 @@ Material:
     - _StarMinBright: -4.46
     - _StarMinSize: 0
     - _StarSize: 0.00234
+    - _StarTwinkleMax: 2
     - _StarTwinkleMaxSpeed: 2.94
+    - _StarTwinkleMin: 0.2
     - _StarTwinkleMinSpeed: -1.2
-    - _StarTwinkleSpeed: 4.27
+    - _StarTwinkleSpeed: 5
+    - _StarTwinkleStrength: 0.66
+    - _StarTwinkleThreshold: 0.285
     - _StarYellowRatio: 0.389
     - _TwinkleSpeed: 0.09
     m_Colors:

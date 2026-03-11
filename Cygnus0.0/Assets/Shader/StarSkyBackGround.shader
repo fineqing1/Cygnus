@@ -2,27 +2,27 @@ Shader "Unlit/PureStarSky"
 {
     Properties
     {
-        // --- 银河背景 (完全保留) ---
-        _GalaxyColor1("银河主色(深蓝)", Color) = (0.05, 0.1, 0.25, 1)
-        _GalaxyColor2("银河辅色(紫)", Color) = (0.3, 0.2, 0.4, 1)
-        _GalaxyIntensity("银河强度", Range(0, 2)) = 1.0
-        _GalaxySmoothness("银河平滑度", Range(5, 50)) = 25.0
-        _GalaxyNoiseScale("银河噪声缩放", Float) = 6.0
-        // --- 星星系统 (完全保留) ---
-        _StarDensity("星星密度", Range(0.01, 0.15)) = 0.06
-        _StarMinSize("最小星大小", Float) = 0.001
-        _StarMaxSize("最大星大小", Float) = 0.01
-        _StarMinBright("最小亮度", Float) = 0.3
-        _StarMaxBright("最大亮度", Float) = 2.0
-        _StarTwinkleMinSpeed("最小闪烁速度", Float) = 0.2
-        _StarTwinkleMaxSpeed("最大闪烁速度", Float) = 3.0
+        // --- 背景贴图 ---
+        _MainTex("星空背景图", 2D) = "black" {}
+        _Sharpness("背景锐度", Range(0.0, 2.0)) = 1.2
+        // --- 背景图中星星控制 ---
+        _StarBrightnessMin("星星亮度下限", Range(0.1, 2.0)) = 0.5
+        _StarBrightnessMax("星星亮度上限", Range(0.5, 4.0)) = 1.5
+        _StarBreathPeriodMin("呼吸周期(秒)最短", Range(0.5, 4.0)) = 0.9
+        _StarBreathPeriodMax("呼吸周期(秒)最长", Range(1.0, 8.0)) = 2.8
+        _StarTwinkleMin("闪烁亮度下限", Range(0.2, 1.2)) = 0.45
+        _StarTwinkleMax("闪烁亮度上限", Range(0.8, 2.0)) = 1.5
+        _StarTwinkleThreshold("闪烁亮度阈值", Range(0.01, 0.5)) = 0.06
         // --- 流星参数 ---
-        _MeteorCount("流星轨道数量", Range(0, 16)) = 8
+        _MeteorCount("流星轨道数量", Range(0, 32)) = 18
+        _MeteorVisibleCount("流星出现数量", Range(0, 32)) = 10
         _MeteorSpeed("流星速度", Range(0.1, 5.0)) = 1.5
-        _MeteorLength("流星长度", Range(0.2, 2.0)) = 0.8
+        _MeteorRunLengthMin("运行长度(最短)", Range(0.06, 0.8)) = 0.18
+        _MeteorRunLengthMax("运行长度(最长)", Range(0.2, 1.2)) = 0.55
+        _MeteorLength("流星尾拖长度", Range(0.03, 0.55)) = 0.22
         _MeteorBaseWidth("流星基础粗细", Range(0.001, 0.05)) = 0.01
         _MeteorSpawnInterval("每条流星周期(秒)", Range(1.0, 14.0)) = 5.0
-        _MeteorLaneSpacing("轨道间距", Range(0.5, 2.5)) = 1.35
+        _MeteorLaneSpacing("轨道间距", Range(0.5, 2.5)) = 1.2
         _MeteorHeadColor("流星头颜色(黄)", Color) = (1.2, 1.0, 0.4, 1)
         _MeteorTailColor("流星尾颜色(蓝)", Color) = (0.3, 0.6, 1.5, 1)
         _MeteorTailPurple("流星尾末端(紫)", Color) = (0.4, 0.25, 0.7, 1)
@@ -52,23 +52,23 @@ Shader "Unlit/PureStarSky"
                 float2 uv     : TEXCOORD0;
                 float4 vertex : SV_POSITION;
             };
-            // --- 银河参数 ---
-            float4 _GalaxyColor1;
-            float4 _GalaxyColor2;
-            float  _GalaxyIntensity;
-            float  _GalaxySmoothness;
-            float  _GalaxyNoiseScale;
-            // --- 星星参数 ---
-            float  _StarDensity;
-            float  _StarMinSize;
-            float  _StarMaxSize;
-            float  _StarMinBright;
-            float  _StarMaxBright;
-            float  _StarTwinkleMinSpeed;
-            float  _StarTwinkleMaxSpeed;
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
+            float4 _MainTex_TexelSize;
+            float  _Sharpness;
+            float  _StarBrightnessMin;
+            float  _StarBrightnessMax;
+            float  _StarBreathPeriodMin;
+            float  _StarBreathPeriodMax;
+            float  _StarTwinkleMin;
+            float  _StarTwinkleMax;
+            float  _StarTwinkleThreshold;
             // --- 流星参数 ---
             float  _MeteorCount;
+            float  _MeteorVisibleCount;
             float  _MeteorSpeed;
+            float  _MeteorRunLengthMin;
+            float  _MeteorRunLengthMax;
             float  _MeteorLength;
             float  _MeteorBaseWidth;
             float  _MeteorSpawnInterval;
@@ -124,58 +124,66 @@ Shader "Unlit/PureStarSky"
             {
                 float2 uv   = i.uv;
                 float  time = _Time.y;
-                float3 col  = float3(0.01, 0.01, 0.03); // 深空底色
-                // ===================== 1. 银河背景 =====================
-                float2 galaxyUV   = uv * _GalaxyNoiseScale;
-                float  galaxyNoise = fbm(galaxyUV);
-                float  galaxyCore  = smoothstep(0.2, 0.8, galaxyNoise) * _GalaxyIntensity;
-                float3 galaxyColor = lerp(_GalaxyColor1.rgb, _GalaxyColor2.rgb, galaxyNoise);
-                col += galaxyColor * galaxyCore * smoothstep(0.0, 1.0, sin(uv.y * _GalaxySmoothness));
-                // ===================== 2. 随机星星系统 =====================
-                float2 starGrid = uv * 1500.0;
-                float2 starID   = floor(starGrid);
-                float  starRand = rand(starID);
-                if (starRand < _StarDensity)
-                {
-                    float starSize   = lerp(_StarMinSize,  _StarMaxSize,  rand(starID + 100.0));
-                    float starBright = lerp(_StarMinBright,_StarMaxBright,rand(starID + 200.0));
-                    float twinkleSpeed = lerp(_StarTwinkleMinSpeed, _StarTwinkleMaxSpeed, rand(starID + 300.0));
-                    float twinkle = (sin(time * twinkleSpeed + starRand * 200.0) + 1.0) * 0.5;
-                    twinkle = pow(twinkle, 2.0);
-                    float2 starFrac = frac(starGrid) - 0.5;
-                    float  d        = length(starFrac) / starSize;
-                    float  star     = smoothstep(1.0, 0.0, d);
-                    float3 starColor = float3(1.0, 1.0, 1.0);
-                    float  colorRand = rand(starID + 400.0);
-                    if (colorRand < 0.3)      starColor = float3(1.0, 0.95, 0.85);
-                    else if (colorRand < 0.6) starColor = float3(0.9, 0.95, 1.0);
-                    col += starColor * star * twinkle * starBright;
-                }
-                // ===================== 3. 流星系统（远近大小 + 颗粒尾） =====================
+                // ===================== 1. 背景贴图 + 锐化（更清晰） =====================
+                float2 texel = _MainTex_TexelSize.xy;
+                float3 c0 = tex2D(_MainTex, uv).rgb;
+                float3 c1 = tex2D(_MainTex, uv + float2(texel.x, 0)).rgb;
+                float3 c2 = tex2D(_MainTex, uv - float2(texel.x, 0)).rgb;
+                float3 c3 = tex2D(_MainTex, uv + float2(0, texel.y)).rgb;
+                float3 c4 = tex2D(_MainTex, uv - float2(0, texel.y)).rgb;
+                float3 blur = (c1 + c2 + c3 + c4) * 0.25;
+                float3 col = c0 + (c0 - blur) * _Sharpness;
+                // ===================== 2. 背景图中星星：随机亮度 + 呼吸（随机周期平滑明暗） =====================
+                float lum = dot(col, float3(0.299, 0.587, 0.114));
+                float starMask = smoothstep(_StarTwinkleThreshold, _StarTwinkleThreshold + 0.25, lum);
+                float2 starCell = floor(uv * 520.0);
+                float starBrightRand = rand(starCell);
+                float starBrightMult = lerp(_StarBrightnessMin, _StarBrightnessMax, starBrightRand);
+                col = lerp(col, col * starBrightMult, starMask);
+                float breathPhase = rand(starCell + 10.0) * 6.283185;
+                float breathPeriod = lerp(_StarBreathPeriodMin, _StarBreathPeriodMax, rand(starCell + 20.0));
+                float t = (time / max(breathPeriod, 0.2)) * 6.283185 + breathPhase;
+                float breath = 0.5 + 0.5 * sin(t);
+                breath = saturate(breath);
+                float twinkle = lerp(_StarTwinkleMin, _StarTwinkleMax, breath) * starMask + (1.0 - starMask);
+                col *= twinkle;
+                // ===================== 3. 流星系统（多轨道、随机方向、限定运行长度、短尾） =====================
                 float3 meteorAccum = 0.0;
-                float2 dirBase = normalize(float2(-1.0, 1.0));
-                int count = (int)_MeteorCount;
-                for (int idx = 0; idx < count; idx++)
+                uint count = (uint)max(0, _MeteorCount);
+                uint visible = (uint)max(0, _MeteorVisibleCount);
+                if (visible > count) visible = count;
+                uint baseCycle = (uint)floor(time / _MeteorSpawnInterval);
+                uint cycleOffset = baseCycle % max(count, 1u);
+                for (uint i = 0u; i < visible; i++)
                 {
-                    float2 seed = float2(idx * 13.37 + 1.23, idx * 7.91 + 4.56);
-                    float depthScale = lerp(_MeteorDepthMin, _MeteorDepthMax, rand(seed + 44.44));
-                    float brightnessScale = lerp(0.6, 1.35, depthScale);
-                    // 全屏覆盖：起点分布在右下整条边（右缘+下缘），轨道等间距 + 随机微调
-                    float lane = (count > 1) ? ((float)idx / (float)(count - 1)) : 0.5;
-                    float startY = -0.5 + lane * 1.6 * _MeteorLaneSpacing + (rand(seed + 11.11) - 0.5) * 0.25;
-                    float startX = 1.02 + rand(seed) * 0.58 + (rand(seed + 55.55) - 0.5) * 0.2;
-                    float angleOffset = (rand(seed + 22.22) - 0.5) * 0.22;
-                    float c = cos(angleOffset);
-                    float s = sin(angleOffset);
-                    float2 dir = float2(dirBase.x * c - dirBase.y * s, dirBase.x * s + dirBase.y * c);
-                    float2 headStart = float2(startX, startY);
+                    uint idx = (cycleOffset + i * 31u) % max(count, 1u);
+                    float2 seed = float2((float)idx * 13.37 + 1.23, (float)idx * 7.91 + 4.56);
                     float phaseOffset = rand(seed + 33.33) * _MeteorSpawnInterval;
                     float localTime = frac((time + phaseOffset) / _MeteorSpawnInterval);
+                    // 每周期不同轨道：用周期号扰动种子，同一轨道不重复出现
+                    float spawnCycle = floor((time + phaseOffset) / _MeteorSpawnInterval);
+                    float2 seedCycle = seed + float2(spawnCycle * 97.19, spawnCycle * 61.17);
+                    float depthScale = lerp(_MeteorDepthMin, _MeteorDepthMax, rand(seedCycle + 44.44));
+                    float brightnessScale = lerp(0.6, 1.35, depthScale);
+                    // 运行方向随机，每周期不同
+                    float angle = rand(seedCycle + 22.22) * 6.283185;
+                    float2 dir = float2(cos(angle), sin(angle));
+                    // 起点按网格均匀铺满画面，密度一致（uint 避免 D3D11 整数除/取模性能警告）
+                    uint nx = max(1u, (uint)sqrt((float)count));
+                    uint ny = (count + nx - 1u) / nx;
+                    uint ix = idx % nx;
+                    uint iy = idx / nx;
+                    float jitter = 0.45 / (float)max(nx, ny);
+                    float startX = ((float)ix + 0.5) / (float)nx * (1.12 * _MeteorLaneSpacing) - 0.06 + (rand(seedCycle) - 0.5) * jitter;
+                    float startY = ((float)iy + 0.5) / (float)ny * (1.12 * _MeteorLaneSpacing) - 0.06 + (rand(seedCycle + 11.11) - 0.5) * jitter;
+                    float2 headStart = float2(startX, startY);
                     float life = smoothstep(0.0, 0.15, localTime) * smoothstep(1.0, 0.85, localTime);
                     if (life <= 0.0001)
                         continue;
                     float t = localTime;
-                    float totalTravel = (_MeteorLength + 2.0) * depthScale;
+                    // 运行长度在最短~最长之间随机，可调
+                    float runLen = lerp(_MeteorRunLengthMin, _MeteorRunLengthMax, rand(seedCycle + 77.77));
+                    float totalTravel = runLen * depthScale;
                     float trailLen = _MeteorLength * depthScale;
                     float2 headPos = headStart + dir * (t * totalTravel);
                     float2 tailPos = headPos - dir * trailLen;
