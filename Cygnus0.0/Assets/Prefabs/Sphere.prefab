@@ -124,9 +124,13 @@ MonoBehaviour:
   sphereCenter: {x: 0, y: 0, z: 0}
   segmentCount: 50
   lineWidth: 0.05
-  lineMaterial: {fileID: 2100000, guid: f8cac0813e1ca8f42ae0bd34c26925c7, type: 2}
-  lineStartColor: {r: 1, g: 1, b: 1, a: 1}
-  lineEndColor: {r: 1, g: 1, b: 1, a: 1}
-  lineAppearDuration: 5
+  lineWidthEnd: 0.05
+  lineMaterial: {fileID: 2100000, guid: 37fcd9df1040fee418c2025092434380, type: 2}
+  lineIntensity: 4
+  lineStartColor: {r: 0.99963385, g: 1, b: 0.5264151, a: 1}
+  lineEndColor: {r: 0.76907855, g: 0.5566037, b: 1, a: 1}
+  lineAppearDuration: 4
+  enableTipParticles: 1
+  tipParticlePrefab: {fileID: 517846316491119177, guid: 305b3ff637727784f966b80e58d6fce9, type: 3}
   debugLog: 0
   debugGizmos: 0

@@ -17,6 +17,8 @@ public class RotationContorller : MonoBehaviour
 
     /// <summary>松手时触发（仅此时可据此判断是否对准并绘制星体连线）</summary>
     public System.Action onRotationEnd;
+    /// <summary>开始拖拽时触发（如用于清除线条）</summary>
+    public System.Action onRotationStart;
 
     /// <summary>是否正在拖拽，供 StarsManager 判断“松手且对准”时画线</summary>
     public bool IsDragging => isDown;
@@ -46,6 +48,7 @@ public class RotationContorller : MonoBehaviour
             {
                 isDown = true;
                 transform.parent = tempParent;
+                onRotationStart?.Invoke();
             }
 
             if (Input.GetMouseButtonUp(0))
