@@ -84,12 +84,12 @@ Material:
     - _MeteorVisibleCount: 2.5
     - _MeteorWidth: 0.1
     - _Nebula: 0.456
-    - _Sharpness: 1.39
+    - _Sharpness: 2
     - _StarBreathPeriodMax: 6.39
-    - _StarBreathPeriodMin: 1.03
+    - _StarBreathPeriodMin: 0.5
     - _StarBrightness: 1.84
-    - _StarBrightnessMax: 2.96
-    - _StarBrightnessMin: 0.18
+    - _StarBrightnessMax: 0.67
+    - _StarBrightnessMin: 0.1
     - _StarDens: 0.0066
     - _StarDensity: 0.0493
     - _StarMaxBright: 4.1
