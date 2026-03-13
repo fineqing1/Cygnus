@@ -34,6 +34,7 @@ public class StarsManager : MonoBehaviour
     [SerializeField] float maxAngleDiff = 180f;
     [Header("首尾星亮度")]
     [Tooltip("HDR 发射色（亮度由角度差计算，色相由此颜色决定）")]
+    [ColorUsage(true, true)]
     [SerializeField] Color emissionColor = Color.white;
     [Header("首尾星缩放")]
     [Tooltip("角度差最大时首尾星的缩放")]
