@@ -501,6 +501,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneName: Bigball
+  fadeOutDuration: 0.8
+  fadeInDuration: 0.8
 --- !u!114 &876864431
 MonoBehaviour:
   m_ObjectHideFlags: 0

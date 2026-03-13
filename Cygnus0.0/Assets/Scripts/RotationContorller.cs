@@ -8,7 +8,11 @@ public class RotationContorller : MonoBehaviour
 {
     public bool isdragable;//后续用if判断
     bool isDown=false;
-    public float rotateSpeed=10;
+
+    [Header("旋转速度")]
+    [Tooltip("拖拽时旋转灵敏度，数值越大转得越快")]
+    [Range(0.5f, 100f)]
+    public float rotateSpeed = 10f;
     Transform tempParent;//临时父对象
     Transform oldparent;//原始父对象
 

@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -15,6 +14,12 @@ public class ClickAreaSceneLoader : MonoBehaviour, IPointerClickHandler
     [Tooltip("点击后要加载的场景名称（需已加入 Build Settings）")]
     public string sceneName = "Bigball";
 
+    [Header("渐变过渡（留出加载时间）")]
+    [Tooltip("变暗时长（秒）")]
+    public float fadeOutDuration = 0.5f;
+    [Tooltip("变亮时长（秒）")]
+    public float fadeInDuration = 0.5f;
+
     public void OnPointerClick(PointerEventData eventData)
     {
         if (string.IsNullOrEmpty(sceneName))
@@ -22,6 +27,6 @@ public class ClickAreaSceneLoader : MonoBehaviour, IPointerClickHandler
             Debug.LogWarning("ClickAreaSceneLoader: sceneName 未设置。");
             return;
         }
-        SceneManager.LoadScene(sceneName);
+        SceneTransitionManager.Instance.LoadSceneWithFade(sceneName, fadeOutDuration, fadeInDuration);
     }
 }

@@ -43,7 +43,7 @@ public class StarsManager : MonoBehaviour
     [Header("非首尾星")]
     [Tooltip("非首尾星使用的材质（不指定则仅通过亮度设为最暗）")]
     [SerializeField] Material nonFirstLastStarMaterial;
-    [Tooltip("targetIndex 超出列表范围时切换到此场景")]
+    [Tooltip("targetIndex 超出列表范围时切换到此场景。必须已在 File -> Build Settings 中加入该场景，否则会报错。")]
     [SerializeField] string outOfRangeSceneName = "Start";
 
     static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
