@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Starsky 1
-  m_Shader: {fileID: 4800000, guid: 31ecf106907e53547b85ef698bfc970e, type: 3}
+  m_Shader: {fileID: 4800000, guid: dc6c38d57f0d1dc468ad347757470dc1, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -94,10 +94,21 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _DstBlendAlpha: 0
+    - _EdgeToCenterSpeed: 0.082
     - _EnvironmentReflections: 1
+    - _FlowScale1: 1.2
+    - _FlowScale2: 2.21
+    - _FlowScale3: 1
+    - _FlowSpeed: 0.08
+    - _FlowSpeed1: 0.179
+    - _FlowSpeed2: 0.354
+    - _FlowSpeed3: 0.283
+    - _FlowStrength: 0.06
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
+    - _GradientSoftness: 0.4
+    - _GradientStretch: 1.2
     - _Metallic: 0
     - _MeteorBaseWidth: 0.001
     - _MeteorCount: 32
@@ -111,6 +122,8 @@ Material:
     - _MeteorSpawnInterval: 2.62
     - _MeteorSpeed: 0.37
     - _MeteorVisibleCount: 2
+    - _MixAmount: 1
+    - _MixSharpness: 0.89
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0
@@ -123,22 +136,50 @@ Material:
     - _SrcBlendAlpha: 1
     - _StarBreathPeriodMax: 4.42
     - _StarBreathPeriodMin: 0.9
+    - _StarBrightMax: 1.48
+    - _StarBrightMin: 0.05
     - _StarBrightnessMax: 1.5
     - _StarBrightnessMin: 0.1
+    - _StarDensity: 0.15
+    - _StarFillRatio: 0.285
+    - _StarGlow: 0.134
+    - _StarJitter: 0.5
+    - _StarMaxBright: 8.31
+    - _StarMaxSize: 0.16
+    - _StarMinBright: 0
+    - _StarMinSize: 0.003
+    - _StarResolution: 4
+    - _StarSize: 2
+    - _StarSizeMax: 1.42
+    - _StarSizeMin: 0.377
+    - _StarSizeScale: 0.86
     - _StarTwinkleMax: 2
+    - _StarTwinkleMaxSpeed: 3
     - _StarTwinkleMin: 0.2
+    - _StarTwinkleMinSpeed: 0.2
     - _StarTwinkleThreshold: 0.263
     - _Surface: 0
+    - _TwinkleBrightFracMax: 0.546
+    - _TwinkleBrightFracMin: 0.07
+    - _TwinklePeriodMax: 1.78
+    - _TwinklePeriodMin: 0.38
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _ColorAccentA: {r: 0.24999997, g: 0.14999998, b: 0.45, a: 1}
+    - _ColorAccentB: {r: 0.45, g: 0.17999998, b: 0.54999995, a: 1}
+    - _ColorAccentC: {r: 0.17999998, g: 0.09999997, b: 0.37999994, a: 1}
+    - _ColorHorizon: {r: 0.899371, g: 0.52887535, b: 0.8610806, a: 1}
+    - _ColorMid: {r: 0.4666667, g: 0.33333334, b: 0.80392164, a: 1}
+    - _ColorTop: {r: 0, g: 0, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _MeteorHeadColor: {r: 1.2, g: 1, b: 0.39999998, a: 1}
     - _MeteorTailColor: {r: 0.29999998, g: 0.6, b: 1.5, a: 1}
     - _MeteorTailPurple: {r: 0.39999998, g: 0.24999997, b: 0.7, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _StarColor: {r: 0.97999996, g: 0.97999996, b: 1, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &1825172841352408187
 MonoBehaviour:

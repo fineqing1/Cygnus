@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class RotationContorller : MonoBehaviour
@@ -76,10 +75,12 @@ public class RotationContorller : MonoBehaviour
         }
     }
 
+#if UNITY_EDITOR
     void OnGUI()
     {
         Rect rect = new Rect(10, 10, 500, 36);
         GUIStyle style = new GUIStyle(GUI.skin.label) { fontSize = 24 };
         GUI.Label(rect, $"Currentangle: ({Currentangle.x:F1}, {Currentangle.y:F1}, {Currentangle.z:F1})", style);
     }
+#endif
 }

@@ -232,6 +232,7 @@ public class StarsManager : MonoBehaviour
             wasAligned = false;
     }
 
+#if UNITY_EDITOR
     void OnGUI()
     {
         GUIStyle style = new GUIStyle(GUI.skin.label) { fontSize = 22 };
@@ -241,6 +242,7 @@ public class StarsManager : MonoBehaviour
         float diff = GetAngleDiff(GetCurrentAngle(), GetCurrentTargetAngle());
         GUI.Label(new Rect(10, 52, 400, 28), $"diff: {diff:F1}", style);
     }
+#endif
 
     /// <summary>仅松手时调用：若在容差内则触发所有 Star 绘制连线</summary>
     void OnRotationEnd()
