@@ -140,14 +140,14 @@ Material:
     - _StarBrightMin: 0.05
     - _StarBrightnessMax: 1.5
     - _StarBrightnessMin: 0.1
-    - _StarDensity: 0.15
+    - _StarDensity: 0.092
     - _StarFillRatio: 0.285
     - _StarGlow: 0.134
     - _StarJitter: 0.5
     - _StarMaxBright: 8.31
-    - _StarMaxSize: 0.16
+    - _StarMaxSize: 0.06
     - _StarMinBright: 0
-    - _StarMinSize: 0.003
+    - _StarMinSize: 0.0242
     - _StarResolution: 4
     - _StarSize: 2
     - _StarSizeMax: 1.42

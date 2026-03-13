@@ -22,13 +22,15 @@ Shader "Unlit/Fantasy Star Sky"
         _EdgeToCenterSpeed("Edge to Center Flow (cloud)", Range(0, 0.5)) = 0.12
 
         [Header(Stars)]
-        _StarDensity("Star Density", Range(0.01, 0.15)) = 0.06
-        _StarMinSize("Star Min Size", Float) = 0.002
-        _StarMaxSize("Star Max Size", Float) = 0.018
-        _StarMinBright("Star Min Bright", Float) = 0.3
-        _StarMaxBright("Star Max Bright", Float) = 2.0
-        _StarTwinkleMinSpeed("Star Twinkle Min Speed", Float) = 0.2
-        _StarTwinkleMaxSpeed("Star Twinkle Max Speed", Float) = 3.0
+        _StarDensity("Star Density", Range(0.01, 0.3)) = 0.08
+        _StarMinSize("Star Min Size", Range(0.001, 0.05)) = 0.002
+        _StarMaxSize("Star Max Size", Range(0.005, 0.06)) = 0.018
+        _StarMinBright("Star Min Bright", Range(0.1, 2.0)) = 0.3
+        _StarMaxBright("Star Max Bright", Range(0.5, 5.0)) = 2.0
+        _StarTwinkleMinSpeed("Star Twinkle Min Speed", Range(0.1, 3.0)) = 0.5
+        _StarTwinkleMaxSpeed("Star Twinkle Max Speed", Range(0.5, 6.0)) = 2.5
+        _StarTwinkleMin("Star Twinkle Min", Range(0.2, 1.2)) = 0.45
+        _StarTwinkleMax("Star Twinkle Max", Range(0.8, 2.0)) = 1.5
 
         [Header(Meteor)]
         _MeteorCount("Meteor Count", Range(0, 32)) = 18
@@ -65,7 +67,7 @@ Shader "Unlit/Fantasy Star Sky"
             float _FlowSpeed1, _FlowSpeed2, _FlowSpeed3, _FlowScale1, _FlowScale2, _FlowScale3;
             float _MixAmount, _MixSharpness, _EdgeToCenterSpeed;
             float _StarDensity, _StarMinSize, _StarMaxSize, _StarMinBright, _StarMaxBright;
-            float _StarTwinkleMinSpeed, _StarTwinkleMaxSpeed;
+            float _StarTwinkleMinSpeed, _StarTwinkleMaxSpeed, _StarTwinkleMin, _StarTwinkleMax;
             float _MeteorCount, _MeteorVisibleCount, _MeteorSpeed;
             float _MeteorRunLengthMin, _MeteorRunLengthMax, _MeteorLength, _MeteorBaseWidth;
             float _MeteorSpawnInterval, _MeteorLaneSpacing, _MeteorIntensity, _MeteorDepthMin, _MeteorDepthMax;
@@ -150,11 +152,17 @@ Shader "Unlit/Fantasy Star Sky"
                 float starRand = rand(starID);
                 if (starRand < _StarDensity)
                 {
+                    // 尺寸：在 [_StarMinSize, _StarMaxSize] 内随机
                     float starSize = lerp(_StarMinSize, _StarMaxSize, rand(starID + 100.0));
+                    // 亮度：在 [_StarMinBright, _StarMaxBright] 内随机
                     float starBright = lerp(_StarMinBright, _StarMaxBright, rand(starID + 200.0));
+                    // 闪烁周期（速度）：在 [_StarTwinkleMinSpeed, _StarTwinkleMaxSpeed] 内随机
                     float twinkleSpeed = lerp(_StarTwinkleMinSpeed, _StarTwinkleMaxSpeed, rand(starID + 300.0));
-                    float twinkle = (sin(time * twinkleSpeed + starRand * 200.0) + 1.0) * 0.5;
-                    twinkle = pow(twinkle, 2.0);
+                    float phase = starRand * 200.0;
+                    float baseWave = (sin(time * twinkleSpeed + phase) + 1.0) * 0.5;
+                    baseWave = pow(baseWave, 2.0);
+                    // 闪烁强度：在 [_StarTwinkleMin, _StarTwinkleMax] 内插值
+                    float twinkle = lerp(_StarTwinkleMin, _StarTwinkleMax, baseWave);
                     float2 starFrac = frac(starGrid) - 0.5;
                     float d = length(starFrac) / starSize;
                     float star = smoothstep(1.0, 0.0, d);
