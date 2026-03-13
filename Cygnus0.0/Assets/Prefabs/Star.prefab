@@ -63,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f8cac0813e1ca8f42ae0bd34c26925c7, type: 2}
+  - {fileID: 2100000, guid: b505f5235f18706409a9c3966db28f79, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -121,8 +121,8 @@ MonoBehaviour:
   neighborstarsLists: []
   sphereCenter: {x: 0, y: 0, z: 0}
   segmentCount: 50
-  lineWidth: 0.05
-  lineWidthEnd: 0.05
+  lineWidth: 0.005
+  lineWidthEnd: 0.01
   lineMaterial: {fileID: 2100000, guid: 37fcd9df1040fee418c2025092434380, type: 2}
   lineIntensity: 4
   lineStartColor: {r: 0.99963385, g: 1, b: 0.5264151, a: 1}
