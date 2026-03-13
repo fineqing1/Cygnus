@@ -57,21 +57,6 @@ public class Star : MonoBehaviour
     /// <summary>所有线条出现动画结束时（计数变为 0）</summary>
     public static System.Action LineAppearEnded;
 
-    /// <summary>设置本星缩放（用于 targetIndex 刷新时还原为最小或按 diff 设置首尾星）</summary>
-    public void SetScale(float scale)
-    {
-        transform.localScale = Vector3.one * Mathf.Clamp(scale, 0.05f, 0.3f);
-    }
-
-    /// <summary>设置本星材质（用于 targetIndex 刷新时设为 glow2，或首尾星设为 glow）</summary>
-    public void SetMaterial(Material mat)
-    {
-        if (mat == null) return;
-        Renderer r = GetComponentInChildren<Renderer>();
-        if (r != null)
-            r.material = mat;
-    }
-
     /// <summary>清除本星所有弧线及终点粒子，并停止出现动画</summary>
     public void ClearArcLines()
     {

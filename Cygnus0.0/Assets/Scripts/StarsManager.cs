@@ -32,15 +32,12 @@ public class StarsManager : MonoBehaviour
     [SerializeField] float angleTolerance = 10f;
     [Tooltip("角度差超过此值亮度为 0")]
     [SerializeField] float maxAngleDiff = 180f;
-    [Tooltip("亮度/缩放在此角度差区间内变化最快（线性过渡）")]
-    [SerializeField] float diffFastMin = 40f;
-    [SerializeField] float diffFastMax = 100f;
     [Header("首尾星亮度")]
     [Tooltip("HDR 发射色（亮度由角度差计算，色相由此颜色决定）")]
     [SerializeField] Color emissionColor = Color.white;
     [Header("首尾星缩放")]
     [Tooltip("角度差最大时首尾星的缩放")]
-    [SerializeField] float firstLastStarScaleMin = 0.05f;
+    [SerializeField] float firstLastStarScaleMin = 0.1f;
     [Tooltip("完全对准时首尾星的缩放")]
     [SerializeField] float firstLastStarScaleMax = 0.3f;
     [Header("首尾星材质")]
@@ -130,8 +127,8 @@ public class StarsManager : MonoBehaviour
             yield break;
         }
 
-        // 缓存弧线：顶点色 + URP 材质 _BaseColor（线用 URP 时往往用材质色，顶点色可能不参与）
-        var lineData = new List<(LineRenderer lr, Color startColor, Color endColor, Material mat, Color baseColor, bool hasBaseColor)>();
+        // 缓存当前所有弧线的初始颜色，用于在 fadeDuration 内渐变透明后再清除
+        var lineData = new List<(LineRenderer lr, Color startColor, Color endColor)>();
         foreach (Star star in oldStars)
         {
             if (star == null) continue;
@@ -142,50 +139,43 @@ public class StarsManager : MonoBehaviour
                 var lr = child.GetComponent<LineRenderer>();
                 if (lr == null) continue;
                 Color s = lr.startColor, e = lr.endColor;
-                Material mat = lr.material;
-                bool hasBase = mat != null && mat.HasProperty(BaseColorId);
-                Color baseCol = hasBase ? mat.GetColor(BaseColorId) : Color.clear;
-                lineData.Add((lr, s, e, mat, baseCol, hasBase));
+                lineData.Add((lr, s, e));
             }
         }
 
         float elapsed = 0f;
-        const float fadeDuration = 0.1f;
+        const float fadeDuration = 1.1f;
         while (elapsed < fadeDuration)
         {
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / fadeDuration);
-            float inv = 1f - t;
             foreach (var d in lineData)
             {
                 if (d.lr == null) continue;
-                Color s = d.startColor, e = d.endColor;
-                d.lr.startColor = new Color(s.r * inv, s.g * inv, s.b * inv, s.a * inv);
-                d.lr.endColor   = new Color(e.r * inv, e.g * inv, e.b * inv, e.a * inv);
-                if (d.hasBaseColor && d.mat != null)
-                    d.mat.SetColor(BaseColorId, new Color(d.baseColor.r * inv, d.baseColor.g * inv, d.baseColor.b * inv, d.baseColor.a * inv));
+                // 仅渐变 alpha：从原始 alpha 过渡到 0，使线条在 fadeDuration 内逐渐透明
+                Color s = d.startColor;
+                Color e = d.endColor;
+                float sa = Mathf.Lerp(s.a, 0f, t);
+                float ea = Mathf.Lerp(e.a, 0f, t);
+                d.lr.startColor = new Color(s.r, s.g, s.b, sa);
+                d.lr.endColor = new Color(e.r, e.g, e.b, ea);
             }
             yield return null;
         }
         foreach (var d in lineData)
         {
             if (d.lr == null) continue;
-            d.lr.startColor = new Color(0, 0, 0, 0);
-            d.lr.endColor   = new Color(0, 0, 0, 0);
-            if (d.hasBaseColor && d.mat != null)
-                d.mat.SetColor(BaseColorId, new Color(0, 0, 0, 0));
+            Color s = d.startColor;
+            Color e = d.endColor;
+            d.lr.startColor = new Color(s.r, s.g, s.b, 0f);
+            d.lr.endColor  = new Color(e.r, e.g, e.b, 0f);
         }
 
-        // 切换前：上一组所有星设为最小缩放 + glow2 材质；glow2 支持 HDR，设置后需把发射强度设为最暗
-        foreach (Star star in oldStars)
-        {
-            if (star != null)
-            {
-                star.SetScale(firstLastStarScaleMin);
-                star.SetMaterial(nonFirstLastStarMaterial);
-                SetStarEmissionBrightness(star, 0f);
-            }
-        }
+        // 切换前将上一组首尾星缩放还原为 firstLastStarScaleMin
+        if (oldStars.Count > 0 && oldStars[0] != null)
+            SetStarScale(oldStars[0], firstLastStarScaleMin);
+        if (oldStars.Count > 1 && oldStars[oldStars.Count - 1] != null)
+            SetStarScale(oldStars[oldStars.Count - 1], firstLastStarScaleMin);
 
         foreach (Star star in oldStars)
         {
@@ -212,26 +202,25 @@ public class StarsManager : MonoBehaviour
         float scale = GetFirstLastStarScale();
         const float minBrightness = 0f;
 
-        // 首星：按 diff 设缩放 + glow 材质 + 亮度
-        stars[0].SetScale(scale);
-        stars[0].SetMaterial(firstLastStarMaterial);
+        // 首星：glow 材质 + 目标亮度/缩放
+        SetStarMaterial(stars[0], firstLastStarMaterial);
         SetStarEmissionBrightness(stars[0], brightness);
-        // 中间星：最小缩放 + glow2 材质；glow2 支持 HDR，设置材质后显式设为最暗发射
+        SetStarScale(stars[0], scale);
+        // 中间星：glow2 材质 + 最暗亮度
         for (int i = 1; i < stars.Count - 1; i++)
         {
             if (stars[i] != null)
             {
-                stars[i].SetScale(firstLastStarScaleMin);
-                stars[i].SetMaterial(nonFirstLastStarMaterial);
+                SetStarMaterial(stars[i], nonFirstLastStarMaterial);
                 SetStarEmissionBrightness(stars[i], minBrightness);
             }
         }
-        // 尾星：按 diff 设缩放 + glow 材质 + 亮度
+        // 尾星：glow 材质 + 目标亮度/缩放
         if (stars.Count > 1)
         {
-            stars[stars.Count - 1].SetScale(scale);
-            stars[stars.Count - 1].SetMaterial(firstLastStarMaterial);
+            SetStarMaterial(stars[stars.Count - 1], firstLastStarMaterial);
             SetStarEmissionBrightness(stars[stars.Count - 1], brightness);
+            SetStarScale(stars[stars.Count - 1], scale);
         }
     }
 
@@ -346,30 +335,41 @@ public class StarsManager : MonoBehaviour
         return entry != null ? entry.list : null;
     }
 
-    /// <summary>亮度/缩放在 [diffFastMin, diffFastMax] 内线性变化，该区间内变化最快；区间外为满值或 0</summary>
-    float GetBrightnessScaleT()
-    {
-        float diff = GetAngleDiff(GetCurrentAngle(), GetCurrentTargetAngle());
-        if (diff <= angleTolerance) return 1f;
-        if (diff >= diffFastMax || diffFastMax <= diffFastMin) return 0f;
-        if (diff <= diffFastMin) return 1f;
-        return Mathf.Max(0f, 1f - (diff - diffFastMin) / (diffFastMax - diffFastMin));
-    }
-
     /// <summary>根据当前角度与 targetangle 的差值计算应有的 HDR 亮度（与 SetFirstLastStarBrightnessByAngleDiff 一致）</summary>
     public float GetCurrentBrightness()
     {
         if (rotationController == null && angleSource == null) return 0f;
-        float t = GetBrightnessScaleT();
+        float diff = GetAngleDiff(GetCurrentAngle(), GetCurrentTargetAngle());
+        float t;
+        if (diff <= angleTolerance)
+            t = 1f;
+        else if (diff >= maxAngleDiff || maxAngleDiff <= angleTolerance)
+            t = 0f;
+        else
+        {
+            // 归一化到 [0,1]，再用 sqrt 使越接近目标亮度变化速率越大（近目标时对角度更敏感）
+            float x = (diff - angleTolerance) / (maxAngleDiff - angleTolerance);
+            t = Mathf.Max(0f, 1f - Mathf.Sqrt(Mathf.Clamp01(x)));
+        }
         return Mathf.Clamp(t * maxBrightness, 0f, 10f);
     }
 
-    /// <summary>根据当前角度与 targetangle 的差值计算首尾星缩放 [min, max]，与亮度同曲线（diff 在 40～100 变化最快）</summary>
+    /// <summary>根据当前角度与 targetangle 的差值计算首尾星缩放 [min, max]，使用与亮度相同的 sqrt 曲线（越接近目标变化越快）</summary>
     public float GetFirstLastStarScale()
     {
         if (rotationController == null && angleSource == null)
             return firstLastStarScaleMin;
-        float t = GetBrightnessScaleT();
+        float diff = GetAngleDiff(GetCurrentAngle(), GetCurrentTargetAngle());
+        float t;
+        if (diff <= angleTolerance)
+            t = 1f;
+        else if (diff >= maxAngleDiff || maxAngleDiff <= angleTolerance)
+            t = 0f;
+        else
+        {
+            float x = (diff - angleTolerance) / (maxAngleDiff - angleTolerance);
+            t = Mathf.Max(0f, 1f - Mathf.Sqrt(Mathf.Clamp01(x)));
+        }
         return Mathf.Lerp(firstLastStarScaleMin, firstLastStarScaleMax, t);
     }
 
@@ -382,20 +382,28 @@ public class StarsManager : MonoBehaviour
 
         float brightness = GetCurrentBrightness();
         float scale = GetFirstLastStarScale();
-        // 材质仅在进入场景和 targetIndex 变化时刷新，此处只更新亮度与缩放（缩放/材质由 Star 提供接口）
+        // 材质仅在进入场景和 targetIndex 变化时刷新，此处只更新亮度与缩放
         SetStarEmissionBrightness(stars[0], brightness);
-        stars[0].SetScale(scale);
+        SetStarScale(stars[0], scale);
         if (stars.Count > 1)
         {
             SetStarEmissionBrightness(stars[stars.Count - 1], brightness);
-            stars[stars.Count - 1].SetScale(scale);
+            SetStarScale(stars[stars.Count - 1], scale);
         }
+    }
+
+    void SetStarMaterial(Star star, Material mat)
+    {
+        if (star == null || mat == null) return;
+        Renderer r = star.GetComponentInChildren<Renderer>();
+        if (r == null) return;
+        r.material = mat;
     }
 
     void SetStarScale(Star star, float scale)
     {
         if (star == null) return;
-        star.SetScale(scale);
+        star.transform.localScale = Vector3.one * Mathf.Clamp(scale, 0.1f, 0.3f);
     }
 
     void SetStarEmissionBrightness(Star star, float brightness)

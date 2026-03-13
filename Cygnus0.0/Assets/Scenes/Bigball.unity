@@ -608,8 +608,6 @@ MonoBehaviour:
   maxBrightness: 10
   angleTolerance: 20
   maxAngleDiff: 180
-  diffFastMin: 40
-  diffFastMax: 100
   emissionColor: {r: 1, g: 1, b: 1, a: 1}
   firstLastStarScaleMin: 0.05
   firstLastStarScaleMax: 0.2
