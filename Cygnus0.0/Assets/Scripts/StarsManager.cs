@@ -516,14 +516,13 @@ public class StarsManager : MonoBehaviour
             t = 0f;
         else
         {
-            // 归一化到 [0,1]，再用 sqrt 使越接近目标亮度变化速率越大（近目标时对角度更敏感）
             float x = (diff - angleTolerance) / (maxAngleDiff - angleTolerance);
-            t = Mathf.Max(0f, 1f - Mathf.Sqrt(Mathf.Clamp01(x)));
+            t = Mathf.Max(0f, 1f - Mathf.Clamp01(x));
         }
         return Mathf.Clamp(t * maxBrightness, 0f, 10f);
     }
 
-    /// <summary>根据当前角度与 targetangle 的差值计算首尾星缩放 [min, max]，使用与亮度相同的 sqrt 曲线（越接近目标变化越快）</summary>
+    /// <summary>根据当前角度与 targetangle 的差值计算首尾星缩放 [min, max]，与亮度一致为线性插值</summary>
     public float GetFirstLastStarScale()
     {
         if (rotationController == null && angleSource == null)
@@ -537,7 +536,7 @@ public class StarsManager : MonoBehaviour
         else
         {
             float x = (diff - angleTolerance) / (maxAngleDiff - angleTolerance);
-            t = Mathf.Max(0f, 1f - Mathf.Sqrt(Mathf.Clamp01(x)));
+            t = Mathf.Max(0f, 1f - Mathf.Clamp01(x));
         }
         return Mathf.Lerp(firstLastStarScaleMin, firstLastStarScaleMax, t);
     }
