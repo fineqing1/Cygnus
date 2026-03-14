@@ -49,12 +49,15 @@ public class StarsManager : MonoBehaviour
     [SerializeField] Material nonFirstLastStarMaterial;
     [Tooltip("targetIndex 超出列表范围时切换到此场景。必须已在 File -> Build Settings 中加入该场景，否则会报错。")]
     [SerializeField] string outOfRangeSceneName = "Start";
+    [Tooltip("对准后平滑旋转到目标角度的时长（秒）")]
+    [SerializeField] float alignRotationDuration = 0.5f;
 
     static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
     static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
     static readonly string[] EmissionKeywords = { "_EMISSION", "EMISSION" };
 
     bool wasAligned;
+    Coroutine _alignRotationCoroutine;
 
     void Start()
     {
@@ -255,11 +258,7 @@ public class StarsManager : MonoBehaviour
         if (isAligned && !wasAligned)
         {
             AudioManager.Instance?.PlaySoundEffect2();
-            foreach (Star star in stars)
-            {
-                if (star != null)
-                    star.ConnectOtherStars(targetIndex);
-            }
+            StartSmoothRotateToTargetAngle();
             wasAligned = true;
         }
         else if (!isAligned)
@@ -286,11 +285,59 @@ public class StarsManager : MonoBehaviour
         float diff = GetAngleDiff(GetCurrentAngle(), GetCurrentTargetAngle());
         if (diff > angleTolerance) return;
         AudioManager.Instance?.PlaySoundEffect2();
-        foreach (Star star in stars)
+        StartSmoothRotateToTargetAngle();
+    }
+
+    /// <summary>对准后创建临时父节点，在 alignRotationDuration 内将 targetToRotate 平滑旋转到当前 targetangle</summary>
+    void StartSmoothRotateToTargetAngle()
+    {
+        if (rotationController == null || rotationController.targetToRotate == null || alignRotationDuration <= 0f) return;
+        if (_alignRotationCoroutine != null) StopCoroutine(_alignRotationCoroutine);
+        _alignRotationCoroutine = StartCoroutine(SmoothRotateToTargetAngle());
+    }
+
+    IEnumerator SmoothRotateToTargetAngle()
+    {
+        if (rotationController != null)
+            rotationController.isdragable = false;
+
+        Transform target = rotationController.targetToRotate;
+        Transform originalParent = target.parent;
+        GameObject tempGo = new GameObject("TempRotationParent");
+        tempGo.transform.position = target.position;
+        tempGo.transform.rotation = Quaternion.identity;
+
+        target.SetParent(tempGo.transform, worldPositionStays: true);
+        Quaternion startWorld = target.rotation;
+        Quaternion endWorld = Quaternion.Euler(GetCurrentTargetAngle());
+
+        float elapsed = 0f;
+        while (elapsed < alignRotationDuration)
         {
-            if (star != null)
-                star.ConnectOtherStars(targetIndex);
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / alignRotationDuration);
+            Quaternion tempRot = Quaternion.Slerp(Quaternion.identity, endWorld * Quaternion.Inverse(startWorld), t);
+            tempGo.transform.rotation = tempRot;
+            yield return null;
         }
+
+        target.rotation = endWorld;
+        target.SetParent(originalParent, worldPositionStays: true);
+        Destroy(tempGo);
+
+        if (rotationController != null)
+            rotationController.isdragable = true;
+
+        List<Star> stars = GetCurrentStars();
+        if (stars != null)
+        {
+            foreach (Star star in stars)
+            {
+                if (star != null)
+                    star.ConnectOtherStars(targetIndex);
+            }
+        }
+        _alignRotationCoroutine = null;
     }
 
     /// <summary>将角度归一化到 [0, 360)，使 360° 与 0° 视为同一角度</summary>
