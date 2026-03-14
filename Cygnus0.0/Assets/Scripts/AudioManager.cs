@@ -8,6 +8,9 @@ public class AudioManager : MonoBehaviour
     [Header("背景音乐")]
     [SerializeField] AudioClip bgmClip;
     [Header("音效")]
+    [Tooltip("音效整体音量 (0~1)")]
+    [Range(0f, 1f)]
+    [SerializeField] float soundEffectVolume = 1f;
     [SerializeField] AudioClip soundEffect1;
     [SerializeField] AudioClip soundEffect2;
     [SerializeField] AudioClip soundEffect3;
@@ -79,18 +82,18 @@ public class AudioManager : MonoBehaviour
     /// <summary>播放音效 1 一次</summary>
     public void PlaySoundEffect1()
     {
-        if (soundEffect1 != null) _sfxSource.PlayOneShot(soundEffect1);
+        if (soundEffect1 != null) _sfxSource.PlayOneShot(soundEffect1, soundEffectVolume);
     }
 
     /// <summary>播放音效 2 一次</summary>
     public void PlaySoundEffect2()
     {
-        if (soundEffect2 != null) _sfxSource.PlayOneShot(soundEffect2);
+        if (soundEffect2 != null) _sfxSource.PlayOneShot(soundEffect2, soundEffectVolume);
     }
 
     /// <summary>播放音效 3 一次</summary>
     public void PlaySoundEffect3()
     {
-        if (soundEffect3 != null) _sfxSource.PlayOneShot(soundEffect3);
+        if (soundEffect3 != null) _sfxSource.PlayOneShot(soundEffect3, soundEffectVolume);
     }
 }

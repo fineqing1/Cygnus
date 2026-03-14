@@ -2754,11 +2754,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2b9afd2419e38849aff0a077835ad3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetToRotate: {fileID: 0}
   isdragable: 1
-  dragSensitivity: 1.29
-  acceleration: 26.7
-  damping: 1.88
-  maxSpeed: 140
+  dragSensitivity: 3.38
+  acceleration: 45.2
+  damping: 1.25
+  maxSpeed: 337
   minInertiaThreshold: 0.5
   Currentangle: {x: 0, y: 0, z: 0}
 --- !u!65 &565164462
