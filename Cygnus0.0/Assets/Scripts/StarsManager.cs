@@ -88,6 +88,7 @@ public class StarsManager : MonoBehaviour
 
     void OnRotationStart()
     {
+        AudioManager.Instance?.PlaySoundEffect1();
         List<Star> stars = GetCurrentStars();
         if (stars == null) return;
         foreach (Star star in stars)
@@ -105,6 +106,7 @@ public class StarsManager : MonoBehaviour
 
     void OnLineAppearEnded()
     {
+        AudioManager.Instance?.PlaySoundEffect3();
         if (rotationController != null)
             rotationController.isdragable = true;
         StartCoroutine(AdvanceTargetIndexAfterDelay(1f));
@@ -172,11 +174,18 @@ public class StarsManager : MonoBehaviour
             d.lr.endColor  = new Color(e.r, e.g, e.b, 0f);
         }
 
-        // 切换前将上一组首尾星缩放还原为 firstLastStarScaleMin
+        // 切换前将上一组首尾星设为 0.02 大小和 glow2 材质
+        const float oldFirstLastStarScale = 0.02f;
         if (oldStars.Count > 0 && oldStars[0] != null)
-            SetStarScale(oldStars[0], firstLastStarScaleMin);
+        {
+            SetStarMaterial(oldStars[0], nonFirstLastStarMaterial);
+            SetStarScale(oldStars[0], oldFirstLastStarScale);
+        }
         if (oldStars.Count > 1 && oldStars[oldStars.Count - 1] != null)
-            SetStarScale(oldStars[oldStars.Count - 1], firstLastStarScaleMin);
+        {
+            SetStarMaterial(oldStars[oldStars.Count - 1], nonFirstLastStarMaterial);
+            SetStarScale(oldStars[oldStars.Count - 1], oldFirstLastStarScale);
+        }
 
         foreach (Star star in oldStars)
         {
@@ -245,6 +254,7 @@ public class StarsManager : MonoBehaviour
         bool isAligned = diff <= angleTolerance;
         if (isAligned && !wasAligned)
         {
+            AudioManager.Instance?.PlaySoundEffect2();
             foreach (Star star in stars)
             {
                 if (star != null)
@@ -275,6 +285,7 @@ public class StarsManager : MonoBehaviour
         if (stars == null || stars.Count == 0 || rotationController == null) return;
         float diff = GetAngleDiff(GetCurrentAngle(), GetCurrentTargetAngle());
         if (diff > angleTolerance) return;
+        AudioManager.Instance?.PlaySoundEffect2();
         foreach (Star star in stars)
         {
             if (star != null)
@@ -300,8 +311,11 @@ public class StarsManager : MonoBehaviour
         return new Vector3(dx, dy, dz).magnitude;
     }
 
+    /// <summary>当前朝向角度，必须来自实际被旋转的物体（targetToRotate），否则 diff 不会随旋转变化。</summary>
     Vector3 GetCurrentAngle()
     {
+        if (rotationController != null && rotationController.targetToRotate != null)
+            return rotationController.targetToRotate.eulerAngles;
         if (angleSource != null) return angleSource.eulerAngles;
         if (rotationController != null) return rotationController.Currentangle;
         return Vector3.zero;
@@ -404,7 +418,7 @@ public class StarsManager : MonoBehaviour
     void SetStarScale(Star star, float scale)
     {
         if (star == null) return;
-        star.transform.localScale = Vector3.one * Mathf.Clamp(scale, 0.1f, 0.3f);
+        star.transform.localScale = Vector3.one * Mathf.Clamp(scale, 0.02f, 0.3f);
     }
 
     void SetStarEmissionBrightness(Star star, float brightness)
