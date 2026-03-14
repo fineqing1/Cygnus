@@ -22,6 +22,7 @@ public class ClickAreaSceneLoader : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        AudioManager.Instance?.PlaySoundEffect1();
         if (string.IsNullOrEmpty(sceneName))
         {
             Debug.LogWarning("ClickAreaSceneLoader: sceneName 未设置。");

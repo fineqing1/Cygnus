@@ -212,7 +212,7 @@ public class StarsManager : MonoBehaviour
 
     void OnLineAppearEnded()
     {
-        AudioManager.Instance?.PlaySoundEffect3();
+        AudioManager.Instance?.PlaySoundEffect2();
         if (rotationController != null)
             rotationController.isdragable = true;
         StartCoroutine(AdvanceTargetIndexAfterDelay(1f));
@@ -283,6 +283,8 @@ public class StarsManager : MonoBehaviour
                 d.lr.endWidth = 0f;
             }
         }
+
+        AudioManager.Instance?.PlaySoundEffect3();
 
         // 切换前将上一组首尾星设为 0.02 大小和 glow2 材质
         const float oldFirstLastStarScale = 0.02f;
@@ -364,7 +366,6 @@ public class StarsManager : MonoBehaviour
         bool isAligned = diff <= angleTolerance;
         if (isAligned && !wasAligned)
         {
-            AudioManager.Instance?.PlaySoundEffect2();
             StartSmoothRotateToTargetAngle();
             wasAligned = true;
         }
@@ -391,7 +392,6 @@ public class StarsManager : MonoBehaviour
         if (stars == null || stars.Count == 0 || rotationController == null) return;
         float diff = GetAngleDiff(GetCurrentAngle(), GetCurrentTargetAngle());
         if (diff > angleTolerance) return;
-        AudioManager.Instance?.PlaySoundEffect2();
         StartSmoothRotateToTargetAngle();
     }
 
