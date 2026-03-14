@@ -52,12 +52,19 @@ public class StarsManager : MonoBehaviour
     [Tooltip("对准后平滑旋转到目标角度的时长（秒）")]
     [SerializeField] float alignRotationDuration = 0.5f;
 
+    [Header("连线消散")]
+    [Tooltip("连线淡出时间（秒）；0 表示立即清除，不淡出")]
+    [SerializeField] [Min(0f)] float lineFadeOutDuration = 2f;
+    [Tooltip("淡出时是否同时将线条粗细渐变为 0")]
+    [SerializeField] bool lineFadeOutWidthShrink = true;
+
     static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
     static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
     static readonly string[] EmissionKeywords = { "_EMISSION", "EMISSION" };
 
     bool wasAligned;
     Coroutine _alignRotationCoroutine;
+    Coroutine _lineFadeOutCoroutine;
 
     void Start()
     {
@@ -94,11 +101,107 @@ public class StarsManager : MonoBehaviour
         AudioManager.Instance?.PlaySoundEffect1();
         List<Star> stars = GetCurrentStars();
         if (stars == null) return;
+
+        if (lineFadeOutDuration <= 0f)
+        {
+            foreach (Star star in stars)
+            {
+                if (star != null)
+                    star.ClearArcLines();
+            }
+            return;
+        }
+
+        if (_lineFadeOutCoroutine != null)
+        {
+            StopCoroutine(_lineFadeOutCoroutine);
+            _lineFadeOutCoroutine = null;
+            foreach (Star star in stars)
+            {
+                if (star != null)
+                    star.ClearArcLines();
+            }
+            return; // 中断当前淡出并立即清除，便于下次拖拽能重新触发淡出
+        }
+
+        var lineData = CollectLineDataFromStars(stars);
+        if (lineData.Count == 0) return;
+
+        _lineFadeOutCoroutine = StartCoroutine(FadeOutLinesThenClear(lineData, stars, lineFadeOutDuration, lineFadeOutWidthShrink));
+    }
+
+    /// <summary>从当前星星列表中收集所有弧线的 LineRenderer 及初始颜色、线宽，用于淡出</summary>
+    static List<(LineRenderer lr, Color startColor, Color endColor, float startWidth, float endWidth)> CollectLineDataFromStars(List<Star> stars)
+    {
+        var list = new List<(LineRenderer lr, Color startColor, Color endColor, float startWidth, float endWidth)>();
+        if (stars == null) return list;
         foreach (Star star in stars)
         {
-            if (star != null)
-                star.ClearArcLines();
+            if (star == null) continue;
+            Transform container = star.transform.Find("ArcLines");
+            if (container == null) continue;
+            foreach (Transform child in container)
+            {
+                LineRenderer lr = child.GetComponent<LineRenderer>();
+                if (lr == null) continue;
+                list.Add((lr, lr.startColor, lr.endColor, lr.startWidth, lr.endWidth));
+            }
         }
+        return list;
+    }
+
+    /// <summary>在 duration 秒内将连线透明度（及可选线宽）渐变为 0，然后清除所有弧线</summary>
+    IEnumerator FadeOutLinesThenClear(
+        List<(LineRenderer lr, Color startColor, Color endColor, float startWidth, float endWidth)> lineData,
+        List<Star> stars,
+        float duration,
+        bool widthShrink)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            foreach (var d in lineData)
+            {
+                if (d.lr == null) continue;
+                float sa = Mathf.Lerp(d.startColor.a, 0f, t);
+                float ea = Mathf.Lerp(d.endColor.a, 0f, t);
+                d.lr.startColor = new Color(d.startColor.r, d.startColor.g, d.startColor.b, sa);
+                d.lr.endColor = new Color(d.endColor.r, d.endColor.g, d.endColor.b, ea);
+                if (widthShrink)
+                {
+                    d.lr.startWidth = Mathf.Lerp(d.startWidth, 0f, t);
+                    d.lr.endWidth = Mathf.Lerp(d.endWidth, 0f, t);
+                }
+            }
+            yield return null;
+        }
+
+        foreach (var d in lineData)
+        {
+            if (d.lr != null)
+            {
+                d.lr.startColor = new Color(d.startColor.r, d.startColor.g, d.startColor.b, 0f);
+                d.lr.endColor = new Color(d.endColor.r, d.endColor.g, d.endColor.b, 0f);
+                if (widthShrink)
+                {
+                    d.lr.startWidth = 0f;
+                    d.lr.endWidth = 0f;
+                }
+            }
+        }
+
+        if (stars != null)
+        {
+            foreach (Star star in stars)
+            {
+                if (star != null)
+                    star.ClearArcLines();
+            }
+        }
+
+        _lineFadeOutCoroutine = null;
     }
 
     void OnLineAppearStarted()
@@ -133,8 +236,8 @@ public class StarsManager : MonoBehaviour
             yield break;
         }
 
-        // 缓存当前所有弧线的初始颜色，用于在 fadeDuration 内渐变透明后再清除
-        var lineData = new List<(LineRenderer lr, Color startColor, Color endColor)>();
+        // 缓存当前所有弧线的初始颜色与线宽，用于在 lineFadeOutDuration 内渐变透明（及可选线宽收缩）后再清除
+        var lineData = new List<(LineRenderer lr, Color startColor, Color endColor, float startWidth, float endWidth)>();
         foreach (Star star in oldStars)
         {
             if (star == null) continue;
@@ -144,13 +247,12 @@ public class StarsManager : MonoBehaviour
             {
                 var lr = child.GetComponent<LineRenderer>();
                 if (lr == null) continue;
-                Color s = lr.startColor, e = lr.endColor;
-                lineData.Add((lr, s, e));
+                lineData.Add((lr, lr.startColor, lr.endColor, lr.startWidth, lr.endWidth));
             }
         }
 
+        float fadeDuration = Mathf.Max(0f, lineFadeOutDuration);
         float elapsed = 0f;
-        const float fadeDuration = 1.1f;
         while (elapsed < fadeDuration)
         {
             elapsed += Time.deltaTime;
@@ -158,23 +260,28 @@ public class StarsManager : MonoBehaviour
             foreach (var d in lineData)
             {
                 if (d.lr == null) continue;
-                // 仅渐变 alpha：从原始 alpha 过渡到 0，使线条在 fadeDuration 内逐渐透明
-                Color s = d.startColor;
-                Color e = d.endColor;
-                float sa = Mathf.Lerp(s.a, 0f, t);
-                float ea = Mathf.Lerp(e.a, 0f, t);
-                d.lr.startColor = new Color(s.r, s.g, s.b, sa);
-                d.lr.endColor = new Color(e.r, e.g, e.b, ea);
+                float sa = Mathf.Lerp(d.startColor.a, 0f, t);
+                float ea = Mathf.Lerp(d.endColor.a, 0f, t);
+                d.lr.startColor = new Color(d.startColor.r, d.startColor.g, d.startColor.b, sa);
+                d.lr.endColor = new Color(d.endColor.r, d.endColor.g, d.endColor.b, ea);
+                if (lineFadeOutWidthShrink)
+                {
+                    d.lr.startWidth = Mathf.Lerp(d.startWidth, 0f, t);
+                    d.lr.endWidth = Mathf.Lerp(d.endWidth, 0f, t);
+                }
             }
             yield return null;
         }
         foreach (var d in lineData)
         {
             if (d.lr == null) continue;
-            Color s = d.startColor;
-            Color e = d.endColor;
-            d.lr.startColor = new Color(s.r, s.g, s.b, 0f);
-            d.lr.endColor  = new Color(e.r, e.g, e.b, 0f);
+            d.lr.startColor = new Color(d.startColor.r, d.startColor.g, d.startColor.b, 0f);
+            d.lr.endColor = new Color(d.endColor.r, d.endColor.g, d.endColor.b, 0f);
+            if (lineFadeOutWidthShrink)
+            {
+                d.lr.startWidth = 0f;
+                d.lr.endWidth = 0f;
+            }
         }
 
         // 切换前将上一组首尾星设为 0.02 大小和 glow2 材质
