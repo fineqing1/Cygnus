@@ -482,15 +482,34 @@ public class StarsManager : MonoBehaviour
         return false;
     }
 
-    /// <summary>使 diff 更小的拖拽方向（屏幕二维，已归一化）。与 RotationController 的映射一致：右拖对应绕 Y 负向，上拖对应绕 X 正向。</summary>
+    /// <summary>使 diff 更小的拖拽方向（屏幕二维，已归一化）。沿视角球面 S² 上当前到目标的最短弧（大圆弧）的切线方向，投影到屏幕；与 RotationController 的映射一致。</summary>
     public Vector2 GetDragHintDirectionNormalized()
     {
         if (rotationController == null || rotationController.targetToRotate == null) return Vector2.zero;
-        Vector3 cur = GetCurrentAngle();
-        Vector3 tgt = GetCurrentTargetAngle();
-        float deltaY = Mathf.DeltaAngle(NormalizeAngle360(cur.y), NormalizeAngle360(tgt.y));
-        float deltaX = Mathf.DeltaAngle(NormalizeAngle360(cur.x), NormalizeAngle360(tgt.x));
-        Vector2 v = new Vector2(-deltaY, deltaX);
+        Transform t = rotationController.targetToRotate;
+        Vector3 currentView = t.forward;
+        Vector3 targetView = Quaternion.Euler(GetCurrentTargetAngle()) * Vector3.forward;
+        currentView.Normalize();
+        targetView.Normalize();
+
+        float dot = Vector3.Dot(currentView, targetView);
+        if (dot >= 0.9999f) return Vector2.zero;
+        Vector3 tangent = targetView - dot * currentView;
+        float len = tangent.magnitude;
+        if (len < 1e-6f) return Vector2.zero;
+        tangent /= len;
+
+        Vector3 up = Vector3.up;
+        Vector3 right = Vector3.right;
+        Vector3 eY = Vector3.Cross(up, currentView);
+        if (eY.sqrMagnitude < 1e-8f) eY = Vector3.Cross(currentView, right);
+        eY.Normalize();
+        Vector3 eX = Vector3.Cross(currentView, eY);
+        eX.Normalize();
+
+        float dy = Vector3.Dot(tangent, eY);
+        float dx = Vector3.Dot(tangent, eX);
+        Vector2 v = new Vector2(-dy, dx);
         if (v.sqrMagnitude < 0.0001f) return Vector2.zero;
         return v.normalized;
     }
@@ -532,6 +551,36 @@ public class StarsManager : MonoBehaviour
         int idx = Mathf.Clamp(targetIndex, 0, starsLists.Count - 1);
         var entry = starsLists[idx];
         return entry != null ? entry.list : null;
+    }
+
+    /// <summary>计算对准目标角度时，首星与尾星的世界坐标。返回是否有效（至少有一颗星且 rotationController 可用）。</summary>
+    public bool GetAlignedFirstLastStarWorldPositions(out Vector3 firstWorld, out Vector3 lastWorld)
+    {
+        firstWorld = Vector3.zero;
+        lastWorld = Vector3.zero;
+        if (rotationController == null || rotationController.targetToRotate == null) return false;
+        List<Star> stars = GetCurrentStars();
+        if (stars == null || stars.Count == 0) return false;
+        Transform target = rotationController.targetToRotate;
+        Quaternion targetRot = Quaternion.Euler(GetCurrentTargetAngle());
+        Star first = stars[0];
+        if (first != null && first.transform != null)
+        {
+            Vector3 offsetLocal = Quaternion.Inverse(target.rotation) * (first.transform.position - target.position);
+            firstWorld = target.position + targetRot * offsetLocal;
+        }
+        if (stars.Count > 1)
+        {
+            Star last = stars[stars.Count - 1];
+            if (last != null && last.transform != null)
+            {
+                Vector3 offsetLocal = Quaternion.Inverse(target.rotation) * (last.transform.position - target.position);
+                lastWorld = target.position + targetRot * offsetLocal;
+            }
+        }
+        else
+            lastWorld = firstWorld;
+        return true;
     }
 
     /// <summary>根据当前角度与 targetangle 的差值计算应有的 HDR 亮度（与 SetFirstLastStarBrightnessByAngleDiff 一致）</summary>
