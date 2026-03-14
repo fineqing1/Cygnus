@@ -100,14 +100,14 @@ Material:
     - _FlowScale2: 2.21
     - _FlowScale3: 1
     - _FlowSpeed: 0.08
-    - _FlowSpeed1: 0.179
-    - _FlowSpeed2: 0.354
+    - _FlowSpeed1: 0.176
+    - _FlowSpeed2: 0.25
     - _FlowSpeed3: 0.283
     - _FlowStrength: 0.06
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GradientSoftness: 0.4
+    - _GradientSoftness: 1.2
     - _GradientStretch: 1.2
     - _Metallic: 0
     - _MeteorBaseWidth: 0.001
@@ -140,23 +140,23 @@ Material:
     - _StarBrightMin: 0.05
     - _StarBrightnessMax: 1.5
     - _StarBrightnessMin: 0.1
-    - _StarDensity: 0.15
+    - _StarDensity: 0.109
     - _StarFillRatio: 0.285
     - _StarGlow: 0.134
     - _StarJitter: 0.5
-    - _StarMaxBright: 8.31
-    - _StarMaxSize: 0.16
-    - _StarMinBright: 0
-    - _StarMinSize: 0.003
+    - _StarMaxBright: 5
+    - _StarMaxSize: 0.06
+    - _StarMinBright: 1.03
+    - _StarMinSize: 0.0127
     - _StarResolution: 4
     - _StarSize: 2
     - _StarSizeMax: 1.42
     - _StarSizeMin: 0.377
     - _StarSizeScale: 0.86
     - _StarTwinkleMax: 2
-    - _StarTwinkleMaxSpeed: 3
-    - _StarTwinkleMin: 0.2
-    - _StarTwinkleMinSpeed: 0.2
+    - _StarTwinkleMaxSpeed: 4.31
+    - _StarTwinkleMin: 0.32
+    - _StarTwinkleMinSpeed: 0.45
     - _StarTwinkleThreshold: 0.263
     - _Surface: 0
     - _TwinkleBrightFracMax: 0.546
