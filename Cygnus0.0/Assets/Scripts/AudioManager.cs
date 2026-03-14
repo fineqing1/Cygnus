@@ -51,6 +51,11 @@ public class AudioManager : MonoBehaviour
         _sfxSource.playOnAwake = false;
     }
 
+    void Start()
+    {
+        PlayBackgroundMusic();
+    }
+
     void OnDestroy()
     {
         if (_instance == this)
