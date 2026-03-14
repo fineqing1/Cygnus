@@ -6,12 +6,12 @@ Shader "Unlit/PureStarSky"
         _MainTex("星空背景图", 2D) = "black" {}
         _Sharpness("背景锐度", Range(0.0, 2.0)) = 1.2
         // --- 背景图中星星控制 ---
-        _StarBrightnessMin("星星亮度下限", Range(0.1, 2.0)) = 0.5
-        _StarBrightnessMax("星星亮度上限", Range(0.5, 4.0)) = 1.5
+        _StarBrightnessMin("星星亮度下限", Range(0.1, 2.5)) = 0.45
+        _StarBrightnessMax("星星亮度上限", Range(0.5, 5.0)) = 2.0
         _StarBreathPeriodMin("呼吸周期(秒)最短", Range(0.5, 4.0)) = 0.9
         _StarBreathPeriodMax("呼吸周期(秒)最长", Range(1.0, 8.0)) = 2.8
-        _StarTwinkleMin("闪烁亮度下限", Range(0.2, 1.2)) = 0.45
-        _StarTwinkleMax("闪烁亮度上限", Range(0.8, 2.0)) = 1.5
+        _StarTwinkleMin("闪烁亮度下限", Range(0.1, 1.5)) = 0.35
+        _StarTwinkleMax("闪烁亮度上限", Range(0.8, 3.0)) = 2.1
         _StarTwinkleThreshold("闪烁亮度阈值", Range(0.01, 0.5)) = 0.06
         // --- 流星参数 ---
         _MeteorCount("流星轨道数量", Range(0, 32)) = 18
@@ -143,9 +143,15 @@ Shader "Unlit/PureStarSky"
                 float breathPhase = rand(starCell + 10.0) * 6.283185;
                 float breathPeriod = lerp(_StarBreathPeriodMin, _StarBreathPeriodMax, rand(starCell + 20.0));
                 float t = (time / max(breathPeriod, 0.2)) * 6.283185 + breathPhase;
+                // 慢呼吸：整体明暗起伏（更偏向极亮/极暗）
                 float breath = 0.5 + 0.5 * sin(t);
-                breath = saturate(breath);
-                float twinkle = lerp(_StarTwinkleMin, _StarTwinkleMax, breath) * starMask + (1.0 - starMask);
+                breath = saturate(pow(breath, 1.6) * 1.15);
+                // 叠加一个更快的闪动分量，让闪烁更明显
+                float fastPhase = rand(starCell + 30.0) * 6.283185;
+                float fast = 0.5 + 0.5 * sin(t * 2.5 + fastPhase);
+                fast = pow(fast, 3.0);
+                float combined = saturate(0.6 * breath + 0.4 * fast);
+                float twinkle = lerp(_StarTwinkleMin, _StarTwinkleMax, combined) * starMask + (1.0 - starMask);
                 col *= twinkle;
                 // ===================== 3. 流星系统（多轨道、随机方向、限定运行长度、短尾） =====================
                 float3 meteorAccum = 0.0;

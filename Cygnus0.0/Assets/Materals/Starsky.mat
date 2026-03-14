@@ -24,7 +24,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 53ea68d1c6d616e46b3e29d57e3b6422, type: 3}
+        m_Texture: {fileID: 2800000, guid: 94e0e4d65548bc945a382acff35f19d0, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
@@ -47,7 +47,7 @@ Material:
     - _MaxTailLength: 0.5
     - _MeteorBaseWidth: 0.001
     - _MeteorBrightness: 71
-    - _MeteorCount: 11.1
+    - _MeteorCount: 32
     - _MeteorDepthMax: 0.845
     - _MeteorDepthMin: 0.475
     - _MeteorFadeEnd: 2
@@ -61,18 +61,30 @@ Material:
     - _MeteorHeadWidth: 32.15
     - _MeteorIntensity: 0.63
     - _MeteorInterval: 2.3
-    - _MeteorLaneSpacing: 0.94
-    - _MeteorLength: 0.056
+<<<<<<< Updated upstream
+    - _MeteorLaneSpacing: 0.913
+    - _MeteorLength: 0.03
+=======
+    - _MeteorLaneSpacing: 0.85
+    - _MeteorLength: 0.053
+>>>>>>> Stashed changes
     - _MeteorLifeMax: 6.79
     - _MeteorLifeMin: 0.35
     - _MeteorMaxTailLength: 0.25
     - _MeteorMaxWidth: 1365.3
     - _MeteorMinWidth: 0.06
     - _MeteorRunLength: 0.28
-    - _MeteorRunLengthMax: 0.28
-    - _MeteorRunLengthMin: 0.092
-    - _MeteorSpawnInterval: 2.1
+<<<<<<< Updated upstream
+    - _MeteorRunLengthMax: 0.321
+    - _MeteorRunLengthMin: 0.083
+    - _MeteorSpawnInterval: 2.62
+    - _MeteorSpeed: 0.37
+=======
+    - _MeteorRunLengthMax: 0.494
+    - _MeteorRunLengthMin: 0.096
+    - _MeteorSpawnInterval: 3
     - _MeteorSpeed: 0.69
+>>>>>>> Stashed changes
     - _MeteorStarSize: 0.005
     - _MeteorStarburst: 1.2
     - _MeteorTailFade: 14.11
@@ -81,15 +93,27 @@ Material:
     - _MeteorTailPurple: 0.35
     - _MeteorTailWidth: 12.85
     - _MeteorTotalLength: 0.06
-    - _MeteorVisibleCount: 2.5
+<<<<<<< Updated upstream
+    - _MeteorVisibleCount: 2
     - _MeteorWidth: 0.1
     - _Nebula: 0.456
     - _Sharpness: 2
-    - _StarBreathPeriodMax: 6.39
-    - _StarBreathPeriodMin: 0.5
+    - _StarBreathPeriodMax: 4.6
+    - _StarBreathPeriodMin: 1.08
     - _StarBrightness: 1.84
-    - _StarBrightnessMax: 0.67
+    - _StarBrightnessMax: 1.49
     - _StarBrightnessMin: 0.1
+=======
+    - _MeteorVisibleCount: 3
+    - _MeteorWidth: 0.1
+    - _Nebula: 0.456
+    - _Sharpness: 2
+    - _StarBreathPeriodMax: 3.77
+    - _StarBreathPeriodMin: 0.83
+    - _StarBrightness: 1.84
+    - _StarBrightnessMax: 2.64
+    - _StarBrightnessMin: 0.3
+>>>>>>> Stashed changes
     - _StarDens: 0.0066
     - _StarDensity: 0.0493
     - _StarMaxBright: 4.1
@@ -97,13 +121,21 @@ Material:
     - _StarMinBright: -4.46
     - _StarMinSize: 0
     - _StarSize: 0.00234
-    - _StarTwinkleMax: 1.42
+<<<<<<< Updated upstream
+    - _StarTwinkleMax: 2
+=======
+    - _StarTwinkleMax: 2.7
+>>>>>>> Stashed changes
     - _StarTwinkleMaxSpeed: 2.94
-    - _StarTwinkleMin: 0.24
+    - _StarTwinkleMin: 0.2
     - _StarTwinkleMinSpeed: -1.2
     - _StarTwinkleSpeed: 5
     - _StarTwinkleStrength: 0.66
-    - _StarTwinkleThreshold: 0.063
+<<<<<<< Updated upstream
+    - _StarTwinkleThreshold: 0.285
+=======
+    - _StarTwinkleThreshold: 0.01
+>>>>>>> Stashed changes
     - _StarYellowRatio: 0.389
     - _TwinkleSpeed: 0.09
     m_Colors:
