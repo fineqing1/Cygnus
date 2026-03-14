@@ -208,13 +208,13 @@ public class StarsManager : MonoBehaviour
 
     void OnLineAppearStarted()
     {
+        AudioManager.Instance?.PlaySoundEffect3();
         if (rotationController != null)
             rotationController.isdragable = false;
     }
 
     void OnLineAppearEnded()
     {
-        AudioManager.Instance?.PlaySoundEffect2();
         if (rotationController != null)
             rotationController.isdragable = true;
         StartCoroutine(AdvanceTargetIndexAfterDelay(1f));
@@ -288,7 +288,7 @@ public class StarsManager : MonoBehaviour
         }
 
         _advanceFadeOutRunning = false;
-        AudioManager.Instance?.PlaySoundEffect3();
+        AudioManager.Instance?.PlaySoundEffect2();
 
         // 切换前将上一组首尾星设为 0.02 大小和 glow2 材质
         const float oldFirstLastStarScale = 0.02f;
