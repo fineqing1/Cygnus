@@ -52,6 +52,8 @@ public class Star : MonoBehaviour
 
     /// <summary>当前正在播放“线条出现”动画的 Star 数量，用于禁用拖拽</summary>
     static int _lineAppearRunningCount;
+    /// <summary>当前正在播放线条出现动画的 Star 数量（0 = 未在连线）</summary>
+    public static int LineAppearRunningCount => _lineAppearRunningCount;
     /// <summary>任意 Star 开始播放线条出现动画时（计数从 0 变为 1）</summary>
     public static System.Action LineAppearStarted;
     /// <summary>所有线条出现动画结束时（计数变为 0）</summary>

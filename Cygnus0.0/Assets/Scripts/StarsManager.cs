@@ -65,6 +65,8 @@ public class StarsManager : MonoBehaviour
     bool wasAligned;
     Coroutine _alignRotationCoroutine;
     Coroutine _lineFadeOutCoroutine;
+    /// <summary>AdvanceTargetIndexAfterDelay 内连线淡出阶段为 true</summary>
+    bool _advanceFadeOutRunning;
 
     void Start()
     {
@@ -236,6 +238,7 @@ public class StarsManager : MonoBehaviour
             yield break;
         }
 
+        _advanceFadeOutRunning = true;
         // 缓存当前所有弧线的初始颜色与线宽，用于在 lineFadeOutDuration 内渐变透明（及可选线宽收缩）后再清除
         var lineData = new List<(LineRenderer lr, Color startColor, Color endColor, float startWidth, float endWidth)>();
         foreach (Star star in oldStars)
@@ -284,6 +287,7 @@ public class StarsManager : MonoBehaviour
             }
         }
 
+        _advanceFadeOutRunning = false;
         AudioManager.Instance?.PlaySoundEffect3();
 
         // 切换前将上一组首尾星设为 0.02 大小和 glow2 材质
@@ -463,6 +467,32 @@ public class StarsManager : MonoBehaviour
         float dy = Mathf.Abs(Mathf.DeltaAngle(cy, ty));
         float dz = Mathf.Abs(Mathf.DeltaAngle(cz, tz));
         return new Vector3(dx, dy, dz).magnitude;
+    }
+
+    /// <summary>正在连线、已经对准、或连线正在消失时应隐藏提示用 Mask</summary>
+    public bool ShouldHideHintMask()
+    {
+        if (Star.LineAppearRunningCount > 0) return true;
+        if (_lineFadeOutCoroutine != null || _advanceFadeOutRunning) return true;
+        if (!rotationController.IsDragging)
+        {
+            float diff = GetAngleDiff(GetCurrentAngle(), GetCurrentTargetAngle());
+            if (diff <= angleTolerance && wasAligned) return true;
+        }
+        return false;
+    }
+
+    /// <summary>使 diff 更小的拖拽方向（屏幕二维，已归一化）。与 RotationController 的映射一致：右拖对应绕 Y 负向，上拖对应绕 X 正向。</summary>
+    public Vector2 GetDragHintDirectionNormalized()
+    {
+        if (rotationController == null || rotationController.targetToRotate == null) return Vector2.zero;
+        Vector3 cur = GetCurrentAngle();
+        Vector3 tgt = GetCurrentTargetAngle();
+        float deltaY = Mathf.DeltaAngle(NormalizeAngle360(cur.y), NormalizeAngle360(tgt.y));
+        float deltaX = Mathf.DeltaAngle(NormalizeAngle360(cur.x), NormalizeAngle360(tgt.x));
+        Vector2 v = new Vector2(-deltaY, deltaX);
+        if (v.sqrMagnitude < 0.0001f) return Vector2.zero;
+        return v.normalized;
     }
 
     /// <summary>当前朝向角度，必须来自实际被旋转的物体（targetToRotate），否则 diff 不会随旋转变化。</summary>
