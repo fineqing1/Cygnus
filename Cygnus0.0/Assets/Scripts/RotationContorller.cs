@@ -1,83 +1,141 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class RotationContorller : MonoBehaviour
 {
-    public bool isdragable;//后续用if判断
-    bool isDown=false;
+    [Header("要旋转的目标")]
+    [Tooltip("要旋转的子物体，为空则旋转第一个子物体")]
+    public Transform targetToRotate;
 
-    [Header("旋转速度")]
-    [Tooltip("拖拽时旋转灵敏度，数值越大转得越快")]
-    [Range(0.5f, 100f)]
-    public float rotateSpeed = 10f;
-    Transform tempParent;//临时父对象
-    Transform oldparent;//原始父对象
+    [Header("是否可拖拽")]
+    public bool isdragable = true;
 
-    /// <summary>当前面向角度（世界坐标欧拉角，度），由 WorldEulerAngleProvider 等外部脚本写入</summary>
+    [Header("拖拽灵敏度")]
+    [Tooltip("拖拽时的响应灵敏度，数值越大转得越快")]
+    [Range(0.1f, 5f)]
+    public float dragSensitivity = 1f;
+
+    [Header("加速度")]
+    [Tooltip("拖拽时速度累积的加速度，数值越大加速越快")]
+    [Range(1f, 50f)]
+    public float acceleration = 20f;
+
+    [Header("惯性阻尼")]
+    [Tooltip("松手后惯性衰减速度，数值越小惯性持续越久")]
+    [Range(0.1f, 10f)]
+    public float damping = 2f;
+
+    [Header("最大速度")]
+    [Tooltip("旋转速度上限，防止旋转过快")]
+    [Range(50f, 500f)]
+    public float maxSpeed = 200f;
+
+    [Header("最小惯性阈值")]
+    [Tooltip("速度低于此值时停止惯性旋转")]
+    [Range(0.1f, 5f)]
+    public float minInertiaThreshold = 0.5f;
+
+    bool isDown = false;
+
+    Vector2 rotationVelocity;
+    Vector2 currentVelocity;
+
     public Vector3 Currentangle;
 
-    /// <summary>松手时触发（仅此时可据此判断是否对准并绘制星体连线）</summary>
     public System.Action onRotationEnd;
-    /// <summary>开始拖拽时触发（如用于清除线条）</summary>
     public System.Action onRotationStart;
 
-    /// <summary>是否正在拖拽，供 StarsManager 判断“松手且对准”时画线</summary>
     public bool IsDragging => isDown;
 
-    /// <summary>为 true 时忽略拖拽输入（如线条出现动画期间）</summary>
     public bool InputBlocked { get; set; }
-
-    private void Awake()
-    {
-        tempParent = new GameObject("TempParent").transform;
-    }
 
     void Start()
     {
-        oldparent = transform.parent;
-        tempParent.position = oldparent == null ? transform.position : oldparent.position;
-        tempParent.rotation = Quaternion.identity;
+        if (targetToRotate == null && transform.childCount > 0)
+        {
+            targetToRotate = transform.GetChild(0);
+        }
+
+        rotationVelocity = Vector2.zero;
+        currentVelocity = Vector2.zero;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (InputBlocked) return;
+        if (InputBlocked || targetToRotate == null) return;
+        
         if (isdragable)
         {
-            if (Input.GetMouseButtonDown(0))
-            {
-                isDown = true;
-                transform.parent = tempParent;
-                onRotationStart?.Invoke();
-            }
+            HandleInput();
+            ApplyRotation();
+        }
+    }
 
-            if (Input.GetMouseButtonUp(0))
-            {
-                isDown = false;
-                transform.parent = oldparent;
-                tempParent.rotation = Quaternion.identity;
-                // 松手瞬间用当前世界欧拉角更新，确保 OnRotationEnd 里读到正确值（不依赖 Update 顺序）
-                Currentangle = transform.eulerAngles;
-                onRotationEnd?.Invoke();
-            }
+    void HandleInput()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            isDown = true;
+            currentVelocity = Vector2.zero;
+            onRotationStart?.Invoke();
+        }
 
-            if (isDown)
+        if (Input.GetMouseButtonUp(0))
+        {
+            isDown = false;
+            rotationVelocity = currentVelocity;
+            onRotationEnd?.Invoke();
+        }
+
+        if (isDown)
+        {
+            float mx = Input.GetAxis("Mouse X");
+            float my = Input.GetAxis("Mouse Y");
+
+            Vector2 targetVelocity = new Vector2(-mx, my) * dragSensitivity * 100f;
+
+            currentVelocity = Vector2.Lerp(currentVelocity, targetVelocity, acceleration * Time.deltaTime);
+
+            float speed = currentVelocity.magnitude;
+            if (speed > maxSpeed)
             {
-                float mx = Input.GetAxis("Mouse X");
-                float my = Input.GetAxis("Mouse Y");
-                Quaternion qx = Quaternion.AngleAxis(-mx * rotateSpeed, Vector3.up);
-                Quaternion qy = Quaternion.AngleAxis(my * rotateSpeed, Vector3.right);
-                tempParent.rotation = tempParent.rotation * qx * qy;
+                currentVelocity = currentVelocity.normalized * maxSpeed;
             }
+        }
+        else
+        {
+            if (rotationVelocity.magnitude > minInertiaThreshold)
+            {
+                rotationVelocity = Vector2.Lerp(rotationVelocity, Vector2.zero, damping * Time.deltaTime);
+            }
+            else
+            {
+                rotationVelocity = Vector2.zero;
+            }
+        }
+    }
+
+    void ApplyRotation()
+    {
+        Vector2 velocityToApply = isDown ? currentVelocity : rotationVelocity;
+
+        if (velocityToApply.magnitude > 0.01f)
+        {
+            float vx = velocityToApply.x * Time.deltaTime;
+            float vy = velocityToApply.y * Time.deltaTime;
+
+            targetToRotate.Rotate(Vector3.up, vx, Space.World);
+            targetToRotate.Rotate(Vector3.right, vy, Space.World);
+
+            Currentangle = targetToRotate.eulerAngles;
         }
     }
 
 #if UNITY_EDITOR
     void OnGUI()
     {
+        if (targetToRotate == null) return;
         Rect rect = new Rect(10, 10, 500, 36);
         GUIStyle style = new GUIStyle(GUI.skin.label) { fontSize = 24 };
         GUI.Label(rect, $"Currentangle: ({Currentangle.x:F1}, {Currentangle.y:F1}, {Currentangle.z:F1})", style);
