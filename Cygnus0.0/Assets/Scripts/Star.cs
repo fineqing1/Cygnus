@@ -88,13 +88,11 @@ public class Star : MonoBehaviour
         List<Star> neighborstars = GetNeighborList(listIndex);
         if (neighborstars == null) return;
 
-        Vector3 center = sphereCenter;
-
         if (debugLog)
         {
             int validCount = 0;
             foreach (Star n in neighborstars) if (n != null) validCount++;
-            Debug.Log($"[Star.ConnectOtherStars] {name} | 球心={center} | 邻居数={neighborstars.Count} (有效={validCount}) | segmentCount={segmentCount}");
+            Debug.Log($"[Star.ConnectOtherStars] {name} | 邻居数={neighborstars.Count} (有效={validCount}) | segmentCount={segmentCount}");
         }
 
         ClearArcLines();
@@ -102,7 +100,7 @@ public class Star : MonoBehaviour
         GameObject containerGo = new GameObject(ArcLinesContainerName);
         containerGo.transform.SetParent(transform, worldPositionStays: false);
 
-        var arcDataList = new List<ArcLineData>();
+        var lineDataList = new List<LineData>();
 
         foreach (Star neighbor in neighborstars)
         {
@@ -112,7 +110,7 @@ public class Star : MonoBehaviour
                 continue;
             }
 
-            GameObject lineGo = new GameObject($"ArcTo_{neighbor.name}");
+            GameObject lineGo = new GameObject($"LineTo_{neighbor.name}");
             lineGo.transform.SetParent(containerGo.transform, worldPositionStays: false);
 
             LineRenderer lr = lineGo.AddComponent<LineRenderer>();
@@ -124,17 +122,8 @@ public class Star : MonoBehaviour
             lr.startColor = lineStartColor * lineIntensity;
             lr.endColor = lineEndColor * lineIntensity;
 
-            float distA = Vector3.Distance(center, transform.position);
-            float distB = Vector3.Distance(center, neighbor.transform.position);
-            Vector3 dirA = (transform.position - center).normalized;
-            Vector3 dirB = (neighbor.transform.position - center).normalized;
-
-            if (debugLog)
-            {
-                float centralAngle = Vector3.Angle(dirA, dirB);
-                Debug.Log($"[Star.ConnectOtherStars] {name} -> {neighbor.name} | 球心={center} | 本星距球心={distA:F3} | 邻居距球心={distB:F3} | 圆心角={centralAngle:F1}°");
-            }
-
+            Vector3 startPos = transform.position;
+            Vector3 endPos = neighbor.transform.position;
             int segs = Mathf.Max(1, segmentCount);
             int totalPoints = segs + 1;
 
@@ -144,68 +133,46 @@ public class Star : MonoBehaviour
                 for (int i = 0; i < totalPoints; i++)
                 {
                     float t = i / (float)segs;
-                    Vector3 pos = GetArcPointAt(center, dirA, dirB, distA, distB, t);
-                    lr.SetPosition(i, pos);
+                    lr.SetPosition(i, Vector3.Lerp(startPos, endPos, t));
                 }
                 if (enableTipParticles && tipParticlePrefab != null)
                 {
-                    Vector3 endPos = GetArcPointAt(center, dirA, dirB, distA, distB, 1f);
-                    Vector3 tangent = GetArcTangentAt(center, dirA, dirB, distA, distB, 1f);
+                    Vector3 tangent = (endPos - startPos).normalized;
+                    if (tangent.sqrMagnitude < 0.0001f) tangent = Vector3.forward;
                     CreateTipParticleSystem(lineGo.transform, endPos, tangent);
                 }
             }
             else
             {
                 lr.positionCount = 2;
-                lr.SetPosition(0, transform.position);
+                lr.SetPosition(0, startPos);
                 float t1 = 1f / segs;
-                Vector3 tipPos = GetArcPointAt(center, dirA, dirB, distA, distB, t1);
+                Vector3 tipPos = Vector3.Lerp(startPos, endPos, t1);
                 lr.SetPosition(1, tipPos);
                 Transform tipParticles = null;
                 if (enableTipParticles && tipParticlePrefab != null)
                 {
-                    Vector3 tangent = GetArcTangentAt(center, dirA, dirB, distA, distB, t1);
+                    Vector3 tangent = (endPos - startPos).normalized;
+                    if (tangent.sqrMagnitude < 0.0001f) tangent = Vector3.forward;
                     tipParticles = CreateTipParticleSystem(lineGo.transform, tipPos, tangent).transform;
                 }
-                arcDataList.Add(new ArcLineData { lr = lr, center = center, dirA = dirA, dirB = dirB, distA = distA, distB = distB, tipParticles = tipParticles });
+                lineDataList.Add(new LineData { lr = lr, startPos = startPos, endPos = endPos, tipParticles = tipParticles });
             }
         }
 
-        if (arcDataList.Count > 0)
+        if (lineDataList.Count > 0)
         {
             _lineAppearRunningCount++;
             if (_lineAppearRunningCount == 1) LineAppearStarted?.Invoke();
-            _lineAppearCoroutine = StartCoroutine(AnimateLinesAppear(arcDataList));
+            _lineAppearCoroutine = StartCoroutine(AnimateLinesAppear(lineDataList));
         }
     }
 
-    struct ArcLineData
+    struct LineData
     {
         public LineRenderer lr;
-        public Vector3 center;
-        public Vector3 dirA, dirB;
-        public float distA, distB;
+        public Vector3 startPos, endPos;
         public Transform tipParticles;
-    }
-
-    /// <summary>弧线参数 t∈[0,1] 处的位置：沿圆心角 Slerp 方向，半径在 distA 与 distB 间线性插值，两端落在两星上</summary>
-    static Vector3 GetArcPointAt(Vector3 center, Vector3 dirA, Vector3 dirB, float distA, float distB, float t)
-    {
-        Vector3 dir = Vector3.Slerp(dirA, dirB, t);
-        float r = Mathf.Lerp(distA, distB, t);
-        return center + dir * r;
-    }
-
-    /// <summary>弧线参数 t 处的切线方向（世界空间，沿绘制方向）</summary>
-    static Vector3 GetArcTangentAt(Vector3 center, Vector3 dirA, Vector3 dirB, float distA, float distB, float t)
-    {
-        float dt = 0.01f;
-        float t2 = Mathf.Clamp01(t + dt);
-        Vector3 p1 = GetArcPointAt(center, dirA, dirB, distA, distB, t);
-        Vector3 p2 = GetArcPointAt(center, dirA, dirB, distA, distB, t2);
-        Vector3 tangent = p2 - p1;
-        if (tangent.sqrMagnitude < 0.0001f) return dirB;
-        return tangent.normalized;
     }
 
     GameObject CreateTipParticleSystem(Transform parent, Vector3 worldPos, Vector3 tangent)
@@ -225,11 +192,12 @@ public class Star : MonoBehaviour
         return go;
     }
 
-    System.Collections.IEnumerator AnimateLinesAppear(List<ArcLineData> arcDataList)
+    System.Collections.IEnumerator AnimateLinesAppear(List<LineData> lineDataList)
     {
         float elapsed = 0f;
         int segs = Mathf.Max(1, segmentCount);
         int totalPoints = segs + 1;
+        Vector3 tangentFallback = Vector3.forward;
         while (elapsed < lineAppearDuration)
         {
             elapsed += Time.deltaTime;
@@ -237,47 +205,43 @@ public class Star : MonoBehaviour
             int showCount = 2 + (int)((totalPoints - 2) * progress);
             if (showCount > totalPoints) showCount = totalPoints;
 
-            foreach (var data in arcDataList)
+            foreach (var data in lineDataList)
             {
                 if (data.lr == null) continue;
                 data.lr.positionCount = showCount;
-                Vector3 prevPos = data.center;
-                Vector3 endPos = data.center;
+                Vector3 lastPos = data.startPos;
                 for (int i = 0; i < showCount; i++)
                 {
                     float t = i / (float)segs;
-                    prevPos = endPos;
-                    endPos = GetArcPointAt(data.center, data.dirA, data.dirB, data.distA, data.distB, t);
-                    data.lr.SetPosition(i, endPos);
+                    lastPos = Vector3.Lerp(data.startPos, data.endPos, t);
+                    data.lr.SetPosition(i, lastPos);
                 }
                 if (data.tipParticles != null)
                 {
-                    data.tipParticles.position = endPos;
-                    Vector3 tangent = (endPos - prevPos).normalized;
+                    data.tipParticles.position = lastPos;
+                    Vector3 tangent = (data.endPos - data.startPos).normalized;
                     if (tangent.sqrMagnitude >= 0.0001f)
                         data.tipParticles.rotation = Quaternion.LookRotation(tangent);
+                    else
+                        data.tipParticles.rotation = Quaternion.LookRotation(tangentFallback);
                 }
             }
             yield return null;
         }
 
-        foreach (var data in arcDataList)
+        foreach (var data in lineDataList)
         {
             if (data.lr == null) continue;
             data.lr.positionCount = totalPoints;
-            Vector3 prevPos = data.center;
-            Vector3 endPos = data.center;
             for (int i = 0; i < totalPoints; i++)
             {
                 float t = i / (float)segs;
-                prevPos = endPos;
-                endPos = GetArcPointAt(data.center, data.dirA, data.dirB, data.distA, data.distB, t);
-                data.lr.SetPosition(i, endPos);
+                data.lr.SetPosition(i, Vector3.Lerp(data.startPos, data.endPos, t));
             }
             if (data.tipParticles != null)
             {
-                data.tipParticles.position = endPos;
-                Vector3 tangent = GetArcTangentAt(data.center, data.dirA, data.dirB, data.distA, data.distB, 1f);
+                data.tipParticles.position = data.endPos;
+                Vector3 tangent = (data.endPos - data.startPos).normalized;
                 if (tangent.sqrMagnitude >= 0.0001f)
                     data.tipParticles.rotation = Quaternion.LookRotation(tangent);
             }
@@ -293,35 +257,13 @@ public class Star : MonoBehaviour
     {
         if (!debugGizmos) return;
 
-        Vector3 center = sphereCenter;
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(center, 0.15f);
-
         List<Star> neighbors = GetNeighborList(0);
         if (neighbors == null) return;
+        Gizmos.color = Color.white;
         foreach (Star neighbor in neighbors)
         {
             if (neighbor == null) continue;
-
-            float distA = Vector3.Distance(center, transform.position);
-            float distB = Vector3.Distance(center, neighbor.transform.position);
-            Vector3 dirA = (transform.position - center).normalized;
-            Vector3 dirB = (neighbor.transform.position - center).normalized;
-
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(center, transform.position);
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawLine(center, neighbor.transform.position);
-            Gizmos.color = Color.white;
-            int segs = Mathf.Max(4, segmentCount);
-            for (int i = 0; i < segs; i++)
-            {
-                float t0 = i / (float)segs;
-                float t1 = (i + 1) / (float)segs;
-                Vector3 p0 = GetArcPointAt(center, dirA, dirB, distA, distB, t0);
-                Vector3 p1 = GetArcPointAt(center, dirA, dirB, distA, distB, t1);
-                Gizmos.DrawLine(p0, p1);
-            }
+            Gizmos.DrawLine(transform.position, neighbor.transform.position);
         }
     }
 #endif

@@ -53,6 +53,8 @@ public class StarsManager : MonoBehaviour
     [SerializeField] float alignRotationDuration = 0.5f;
 
     [Header("连线消散")]
+    [Tooltip("连线完成后停顿多久再开始让线消失（秒）")]
+    [SerializeField] [Min(0f)] float delayBeforeLineFadeOut = 1f;
     [Tooltip("连线淡出时间（秒）；0 表示立即清除，不淡出")]
     [SerializeField] [Min(0f)] float lineFadeOutDuration = 2f;
     [Tooltip("淡出时是否同时将线条粗细渐变为 0")]
@@ -217,7 +219,7 @@ public class StarsManager : MonoBehaviour
     {
         if (rotationController != null)
             rotationController.isdragable = true;
-        StartCoroutine(AdvanceTargetIndexAfterDelay(1f));
+        StartCoroutine(AdvanceTargetIndexAfterDelay(delayBeforeLineFadeOut));
     }
 
     IEnumerator AdvanceTargetIndexAfterDelay(float delay)
